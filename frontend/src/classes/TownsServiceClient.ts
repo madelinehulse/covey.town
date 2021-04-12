@@ -50,6 +50,21 @@ export interface TownCreateResponse {
 }
 
 /**
+ * Payload sent by client to create a game in the town
+ */
+export interface GameCreateRequest {
+  player1: ServerPlayer;
+  player2: ServerPlayer;
+}
+
+/**
+ * Response from the server for a game create request
+ */
+export interface GameCreateResponse {
+  gameID: string;
+}
+
+/**
  * Response from the server for a Town list request
  */
 export interface TownListResponse {
@@ -139,6 +154,11 @@ export default class TownsServiceClient {
 
   async joinTown(requestData: TownJoinRequest): Promise<TownJoinResponse> {
     const responseWrapper = await this._axios.post('/sessions', requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async createGame(requestData: GameCreateRequest): Promise<GameCreateResponse> {
+    const responseWrapper = await this._axios.post<ResponseEnvelope<GameCreateResponse>>('/towns/games', requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 

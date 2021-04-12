@@ -4,6 +4,7 @@ import React, { useContext, useEffect, useState } from 'react';
  import useCoveyAppState from '../../hooks/useCoveyAppState';
  import Player, { UserLocation } from '../../classes/Player';
  import useNearbyPlayers from '../../hooks/useNearbyPlayers';
+ import handleCreate from '../Login/CheckersSelection';
 
  class ReactCheckersScene extends Phaser.Scene {
         
@@ -50,6 +51,7 @@ import React, { useContext, useEffect, useState } from 'react';
      }
 
      addPlayButton(x :number, y :number, container :Phaser.GameObjects.Container) {
+         const { nearbyPlayers } = useNearbyPlayers();
          const playButton = this.add.image(x, y, 'play-button', 1)
              .setOrigin(0)
              .setInteractive();
@@ -65,6 +67,7 @@ import React, { useContext, useEffect, useState } from 'react';
          });
 
          playButton.on('pointerup', () => {
+             handleCreate();
              this.startGame(container)
          }, this);
          return playButton;
