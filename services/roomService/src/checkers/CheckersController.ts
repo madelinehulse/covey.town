@@ -229,6 +229,7 @@ isGameOver() {
 			|| this.checkTopRightMove(rowNum,colNum);
 		}
 	}
+	return false;
 }
 
 // Checks whether a piece can move OR hop in top left direction
