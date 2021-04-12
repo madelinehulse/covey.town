@@ -10,7 +10,7 @@ import useCoveyAppState from '../../hooks/useCoveyAppState';
 import Player from '../../classes/Player';
 import useNearbyPlayers from '../../hooks/useNearbyPlayers';
 
-export default function CheckersSelection() {
+export default function CheckersSelection() : JSX.Element {
   const { apiClient } = useCoveyAppState();
   const toast = useToast();
   const { nearbyPlayers } = useNearbyPlayers();
@@ -40,5 +40,10 @@ export default function CheckersSelection() {
       })
     }
   };
+  return (
+    <>
+
+    </>
+  );
 }
 

@@ -1,18 +1,27 @@
 import React, { useContext, useEffect, useState } from 'react';
  import Phaser from 'phaser';
+ import {
+    useToast
+  } from '@chakra-ui/react';
  import Video from '../../classes/Video/Video';
  import useCoveyAppState from '../../hooks/useCoveyAppState';
  import Player, { UserLocation } from '../../classes/Player';
  import useNearbyPlayers from '../../hooks/useNearbyPlayers';
- import handleCreate from '../Login/CheckersSelection';
+
+ type HandleCreate = () => void;
 
  class ReactCheckersScene extends Phaser.Scene {
+     
+    private handleCreateFunction: HandleCreate;
         
-     constructor(){
+     constructor(handleCreateParam: HandleCreate){
+
          super({
              key: "checkers"
          })
+         this.handleCreateFunction = handleCreateParam;
      }
+
 
      init(data: any) {
          console.log(data)
@@ -51,7 +60,7 @@ import React, { useContext, useEffect, useState } from 'react';
      }
 
      addPlayButton(x :number, y :number, container :Phaser.GameObjects.Container) {
-         const { nearbyPlayers } = useNearbyPlayers();
+
          const playButton = this.add.image(x, y, 'play-button', 1)
              .setOrigin(0)
              .setInteractive();
@@ -67,7 +76,7 @@ import React, { useContext, useEffect, useState } from 'react';
          });
 
          playButton.on('pointerup', () => {
-             handleCreate();
+             this.handleCreateFunction();
              this.startGame(container)
          }, this);
          return playButton;
@@ -149,6 +158,38 @@ import React, { useContext, useEffect, useState } from 'react';
      const { nearbyPlayers } = useNearbyPlayers();
      const hasNearbyPlayer = nearbyPlayers.length > 0;
 
+
+     const { apiClient } = useCoveyAppState();
+     const toast = useToast();
+
+     async function handleCreate() {
+         console.log("called");
+        try {
+          const nearbyPlayer1 : Player = nearbyPlayers[0];
+          const nearbyPlayer2 : Player = nearbyPlayers[1];
+    
+          const newTownInfo = await apiClient.createGame({
+            player1: { _id: nearbyPlayer1.id, _userName: nearbyPlayer1.userName, location: nearbyPlayer1.location! },
+            player2: { _id: nearbyPlayer2.id, _userName: nearbyPlayer2.userName, location: nearbyPlayer2.location! },
+          });
+          toast({
+            title: `Game is ready to go!`,
+            description: <>You are now ready to player checkers</>,
+            status: 'success',
+            isClosable: true,
+            duration: null,
+          })
+        } catch (err) {
+            console.log(err.toString());
+            console.log("toast");
+          toast({
+            title: 'Unable to connect to Towns Service',
+            description: err.toString(),
+            status: 'error'
+          })
+        }
+    };
+
      console.log(hasNearbyPlayer);
      console.log("playa");
 
@@ -170,9 +211,10 @@ import React, { useContext, useEffect, useState } from 'react';
 
          
          const game = new Phaser.Game(config);
-             const newGameScene = new ReactCheckersScene();
+             const newGameScene = new ReactCheckersScene(handleCreate);
              setGameScene(newGameScene);
              game.scene.add('checkers', newGameScene, true);
+             // add button here? 
 
          return () => {
              game.destroy(true);
