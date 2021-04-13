@@ -5,6 +5,7 @@ import { CoveyTownList, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
 import CheckersStore from '../../src/checkers/CheckersStore';
+import { ServerPlayer } from '../client/TownsServiceClient';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -49,8 +50,8 @@ export interface TownCreateRequest {
  * Payload sent by client to create a game in town
  */
 export interface GameCreateRequest {
-  player1: Player;
-  player2: Player;
+  player1: ServerPlayer;
+  player2: ServerPlayer;
 }
 
 /**
