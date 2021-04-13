@@ -161,16 +161,23 @@ import React, { useContext, useEffect, useState } from 'react';
 
      const { apiClient } = useCoveyAppState();
      const toast = useToast();
+     /* eslint-disable prefer-destructuring */
+    const nearbyPlayer1 : Player = nearbyPlayers[0];
 
+    useEffect(() => {
+             
+        // maybe pass a new game scene here? 
+        console.log(nearbyPlayers);
+        console.log("giraffe");
+     }, [nearbyPlayers]);
+    
      async function handleCreate() {
-         console.log("called");
+        
         try {
-          const nearbyPlayer1 : Player = nearbyPlayers[0];
-          const nearbyPlayer2 : Player = nearbyPlayers[1];
+          console.log(nearbyPlayers);
     
           const newTownInfo = await apiClient.createGame({
             player1: { _id: nearbyPlayer1.id, _userName: nearbyPlayer1.userName, location: nearbyPlayer1.location! },
-            player2: { _id: nearbyPlayer2.id, _userName: nearbyPlayer2.userName, location: nearbyPlayer2.location! },
           });
           toast({
             title: `Game is ready to go!`,
@@ -183,15 +190,12 @@ import React, { useContext, useEffect, useState } from 'react';
             console.log(err.toString());
             console.log("toast");
           toast({
-            title: 'Unable to connect to Towns Service',
+            title: 'Unable to start game',
             description: err.toString(),
             status: 'error'
           })
         }
     };
-
-     console.log(hasNearbyPlayer);
-     console.log("playa");
 
 
      useEffect(() => {
@@ -219,7 +223,7 @@ import React, { useContext, useEffect, useState } from 'react';
          return () => {
              game.destroy(true);
            };
-     }, []);
+     }, [nearbyPlayers]);
 
 
      return <div id="board-container" style={{ display: hasNearbyPlayer ? "block" : "none" }}/>;

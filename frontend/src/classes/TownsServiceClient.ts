@@ -54,7 +54,7 @@ export interface TownCreateResponse {
  */
 export interface GameCreateRequest {
   player1: ServerPlayer;
-  player2: ServerPlayer;
+  // player2: ServerPlayer;
 }
 
 /**

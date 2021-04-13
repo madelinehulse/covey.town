@@ -22,7 +22,7 @@ export default function CheckersSelection() : JSX.Element {
 
       const newTownInfo = await apiClient.createGame({
         player1: { _id: nearbyPlayer1.id, _userName: nearbyPlayer1.userName, location: nearbyPlayer1.location! },
-        player2: { _id: nearbyPlayer2.id, _userName: nearbyPlayer2.userName, location: nearbyPlayer2.location! },
+        // player2: { _id: nearbyPlayer2.id, _userName: nearbyPlayer2.userName, location: nearbyPlayer2.location! },
       });
 
       toast({
