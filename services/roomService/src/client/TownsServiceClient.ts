@@ -44,12 +44,47 @@ export interface TownCreateRequest {
   isPubliclyListed: boolean;
 }
 
+
+
 /**
  * Response from the server for a Town create request
  */
 export interface TownCreateResponse {
   coveyTownID: string;
   coveyTownPassword: string;
+}
+
+/**
+ * Payload sent by client to create a game in the town
+ */
+ export interface GameCreateRequest {
+  player1: ServerPlayer;
+  player2: ServerPlayer;
+}
+
+/**
+ * Payload sent by the client to delete a Town
+ */
+export interface GameUpdateRequest {
+  gameID: string;
+  fromRow: number;
+  fromCol: number;
+  toRow: number;
+  toCol: number;
+}
+
+/**
+ * Payload sent by the client to delete a Town
+ */
+export interface GameDeleteRequest {
+  gameID: string;
+}
+
+/**
+ * Response from the server for a game create request
+ */
+export interface GameCreateResponse {
+  gameID: string;
 }
 
 /**
@@ -142,6 +177,21 @@ export default class TownsServiceClient {
 
   async joinTown(requestData: TownJoinRequest): Promise<TownJoinResponse> {
     const responseWrapper = await this._axios.post('/sessions', requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async createGame(requestData: GameCreateRequest): Promise<GameCreateResponse> {
+    const responseWrapper = await this._axios.post<ResponseEnvelope<GameCreateResponse>>('/towns/games', requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async updateGame(requestData: GameUpdateRequest): Promise<void> {
+    const responseWrapper = await this._axios.post<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`, requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async deleteGame(requestData: GameDeleteRequest): Promise<void> {
+    const responseWrapper = await this._axios.post<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
