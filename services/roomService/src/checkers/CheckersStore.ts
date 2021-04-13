@@ -1,3 +1,4 @@
+import { ServerPlayer } from "../client/TownsServiceClient";
 import Player from "../types/Player";
 import CheckersController from "./CheckersController";
 
@@ -19,7 +20,7 @@ export default class CheckersStore {
   }
 
   
-  createGame(player1: Player, player2:Player): CheckersController {
+  createGame(player1: ServerPlayer, player2: ServerPlayer): CheckersController {
     const newGame = new CheckersController(player1, player2);
     this._games.push(newGame);
     return newGame;

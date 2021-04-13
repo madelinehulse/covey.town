@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { ServerPlayer } from "../client/TownsServiceClient";
 import { Piece } from "../CoveyTypes"
 import Player from "../types/Player";
 
@@ -10,9 +11,9 @@ export default class CheckersController {
     
     private _gameID: string;
 
-    private _player1: Player; //We have these as sockets
+    private _player1: ServerPlayer; //We have these as sockets
 
-    private _player2: Player;
+    private _player2: ServerPlayer;
 
     private board: Piece[][] = [[]];
 
@@ -23,7 +24,7 @@ export default class CheckersController {
 	private redPieces: number;
 
 
- constructor(player1: Player, player2: Player) {
+ constructor(player1: ServerPlayer, player2: ServerPlayer) {
      this._gameID = nanoid(8);
      this._player1 = player1;
      this._player2 = player2;
