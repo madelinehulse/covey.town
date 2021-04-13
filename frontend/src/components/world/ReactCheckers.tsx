@@ -7,8 +7,14 @@ import React, { useContext, useEffect, useState } from 'react';
  import useCoveyAppState from '../../hooks/useCoveyAppState';
  import Player, { UserLocation } from '../../classes/Player';
  import useNearbyPlayers from '../../hooks/useNearbyPlayers';
+import { CoveyAppState } from '../../CoveyTypes';
 
  type HandleCreate = () => void;
+
+ interface CheckersGameProps {
+     playerUserName: string
+     playerID: string
+ }
 
  class ReactCheckersScene extends Phaser.Scene {
      
@@ -24,7 +30,6 @@ import React, { useContext, useEffect, useState } from 'react';
 
 
      init(data: any) {
-         console.log(data)
          this.scene.bringToTop();
      }
 
@@ -153,7 +158,7 @@ import React, { useContext, useEffect, useState } from 'react';
     }
  }
 
- export default function ReactCheckers(): JSX.Element {
+ export default function ReactCheckers({ playerUserName, playerID }: CheckersGameProps): JSX.Element {
      const [gameScene, setGameScene] = useState<ReactCheckersScene>();
      const { nearbyPlayers } = useNearbyPlayers();
      const hasNearbyPlayer = nearbyPlayers.length > 0;
@@ -175,6 +180,9 @@ import React, { useContext, useEffect, useState } from 'react';
         
         try {
           console.log(nearbyPlayers);
+          console.log(nearbyPlayers[0].id);
+          console.log(playerUserName);
+          console.log(playerID);
     
           const newTownInfo = await apiClient.createGame({
             player1: { _id: nearbyPlayer1.id, _userName: nearbyPlayer1.userName, location: nearbyPlayer1.location! },

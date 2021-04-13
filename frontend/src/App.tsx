@@ -222,7 +222,6 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
 
   const { nearbyPlayers } = appState.nearbyPlayers;
   const hasNearbyPlayer = nearbyPlayers.length > 0;
-  
 
   const page = useMemo(() => {
     if (!appState.sessionToken) {
@@ -237,7 +236,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           <Popup />
         </div>
         <div id="overlay" hidden={hasNearbyPlayer}>
-             <ReactCheckers />
+             <ReactCheckers playerUserName={appState.userName} playerID={appState.myPlayerID}/>
          </div>
         
         <VideoOverlay preferredMode="fullwidth" />
