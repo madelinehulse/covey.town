@@ -236,7 +236,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           <Popup />
         </div>
         <div id="overlay" hidden={hasNearbyPlayer}>
-             <ReactCheckers playerUserName={appState.userName} playerID={appState.myPlayerID}/>
+             <ReactCheckers playerUserName={appState.userName} playerID={appState.myPlayerID} playerLocation={appState.currentLocation}/>
          </div>
         
         <VideoOverlay preferredMode="fullwidth" />

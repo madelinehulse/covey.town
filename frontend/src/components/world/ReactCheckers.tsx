@@ -10,22 +10,31 @@ import React, { useContext, useEffect, useState } from 'react';
 import { CoveyAppState } from '../../CoveyTypes';
 
  type HandleCreate = () => void;
+ type HandleMove = () => void;
+ type HandleDelete = () => void;
 
  interface CheckersGameProps {
      playerUserName: string
      playerID: string
+     playerLocation: UserLocation
  }
 
  class ReactCheckersScene extends Phaser.Scene {
      
     private handleCreateFunction: HandleCreate;
+
+    private handleMoveFunction: HandleMove;
+
+    private handleDeleteFunction: HandleDelete;
         
-     constructor(handleCreateParam: HandleCreate){
+     constructor(handleCreateParam: HandleCreate, handleMoveParam: HandleMove, handleDeleteParam: HandleDelete){
 
          super({
              key: "checkers"
          })
          this.handleCreateFunction = handleCreateParam;
+         this.handleMoveFunction = handleMoveParam;
+         this.handleDeleteFunction = handleDeleteParam;
      }
 
 
@@ -158,7 +167,7 @@ import { CoveyAppState } from '../../CoveyTypes';
     }
  }
 
- export default function ReactCheckers({ playerUserName, playerID }: CheckersGameProps): JSX.Element {
+ export default function ReactCheckers({ playerUserName, playerID, playerLocation }: CheckersGameProps): JSX.Element {
      const [gameScene, setGameScene] = useState<ReactCheckersScene>();
      const { nearbyPlayers } = useNearbyPlayers();
      const hasNearbyPlayer = nearbyPlayers.length > 0;
@@ -175,17 +184,66 @@ import { CoveyAppState } from '../../CoveyTypes';
         console.log(nearbyPlayers);
         console.log("giraffe");
      }, [nearbyPlayers]);
+
+     async function handleMove() {
+        try {
+      
+            const gameUpdate = await apiClient.updateGame({
+              gameID: "",
+              toRow: 0,
+              toCol: 0,
+              fromRow: 0,
+              fromCol: 0
+            });
+            toast({
+              title: `You made a move!`,
+              description: <>Your turn is over</>,
+              status: 'success',
+              isClosable: true,
+              duration: null,
+            })
+          } catch (err) {
+              console.log(err.toString());
+              console.log("toast");
+            toast({
+              title: 'Invalid move',
+              description: err.toString(),
+              status: 'error'
+            })
+          }
+     }
+
+     async function handleDelete() {
+        try {
+      
+            const gameUpdate = await apiClient.deleteGame({
+              gameID: "",
+            });
+            toast({
+              title: `Game over!`,
+              description: <>Find another player to start a game</>,
+              status: 'success',
+              isClosable: true,
+              duration: null,
+            })
+          } catch (err) {
+              console.log(err.toString());
+              console.log("toast");
+            toast({
+              title: 'Cannot end game',
+              description: err.toString(),
+              status: 'error'
+            })
+          }
+     }
     
      async function handleCreate() {
         
         try {
-          console.log(nearbyPlayers);
-          console.log(nearbyPlayers[0].id);
-          console.log(playerUserName);
-          console.log(playerID);
     
           const newTownInfo = await apiClient.createGame({
             player1: { _id: nearbyPlayer1.id, _userName: nearbyPlayer1.userName, location: nearbyPlayer1.location! },
+            player2: { _id: playerID, _userName: playerUserName, location: playerLocation! }
           });
           toast({
             title: `Game is ready to go!`,
@@ -223,7 +281,7 @@ import { CoveyAppState } from '../../CoveyTypes';
 
          
          const game = new Phaser.Game(config);
-             const newGameScene = new ReactCheckersScene(handleCreate);
+             const newGameScene = new ReactCheckersScene(handleCreate, handleMove, handleDelete);
              setGameScene(newGameScene);
              game.scene.add('checkers', newGameScene, true);
              // add button here? 

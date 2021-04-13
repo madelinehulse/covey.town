@@ -96,6 +96,26 @@ export interface TownUpdateRequest {
 }
 
 /**
+ * Payload sent by the client to update a Town.
+ * N.B., JavaScript is terrible, so:
+ * if(!isPubliclyListed) -> evaluates to true if the value is false OR undefined, use ===
+ */
+export interface GameUpdateRequest {
+  gameID: string;
+  fromRow: number;
+  fromCol: number;
+  toRow: number;
+  toCol: number;
+}
+
+/**
+ * Payload sent by the client to delete a Town
+ */
+export interface GameDeleteRequest {
+  gameID: string;
+}
+
+/**
  * Envelope that wraps any response from the server
  */
 export interface ResponseEnvelope<T> {
@@ -173,6 +193,27 @@ export async function gameCreateHandler(requestData: GameCreateRequest): Promise
     response: {
       gameID: newGame.gameID,
     },
+  };
+}
+
+export async function gameUpdateHandler(requestData: GameUpdateRequest): Promise<ResponseEnvelope<Record<string, null>>> {
+  const gamesStore = CheckersStore.getInstance();
+
+  const success = gamesStore.updateGame(requestData.gameID, requestData.fromRow, requestData.fromCol, requestData.toRow, requestData.toCol);
+  return {
+    isOK: true,
+    response: {},
+    message: !success ? 'Invalid move' : undefined,
+  };
+}
+
+export async function gameDeleteHandler(requestData: GameDeleteRequest): Promise<ResponseEnvelope<Record<string, null>>> {
+  const gamesStore = CheckersStore.getInstance();
+  const success = gamesStore.deleteGame(requestData.gameID);
+  return {
+    isOK: success,
+    response: {},
+    message: !success ? 'Could not delete game.' : undefined,
   };
 }
 
