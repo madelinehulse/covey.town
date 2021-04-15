@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import assert from 'assert';
 import { ServerPlayer } from './Player';
+import { CheckersGameState } from '../components/world/CheckerTypes';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -50,6 +51,21 @@ export interface TownCreateResponse {
 }
 
 /**
+ * Payload sent by client to initiage a game in the town
+ */
+ export interface GameStartRequest {
+  playerID: string;
+  ready: boolean;
+}
+
+/**
+ * Response from the server for a game start request
+ */
+ export interface GameStartResponse {
+  otherPlayerReady: boolean;
+}
+
+/**
  * Payload sent by client to create a game in the town
  */
 export interface GameCreateRequest {
@@ -58,27 +74,50 @@ export interface GameCreateRequest {
 }
 
 /**
+ * Response from the server for a game create request
+ */
+ export interface GameCreateResponse {
+  gameID: string;
+  otherPlayerReady: boolean;
+  gameState: CheckersGameState;
+}
+
+/**
+ * Payload sent by client to create a game in the town
+ */
+ export interface CheckPlayerReadyRequest {
+  otherPlayerID: string;
+}
+
+/**
+ * Response from the server for a game create request
+ */
+ export interface CheckPlayerReadyResponse {
+  otherPlayerReady: boolean;
+}
+
+/**
  * Payload sent by the client to delete a Town
  */
 export interface GameUpdateRequest {
   gameID: string;
-  fromRow: number;
-  fromCol: number;
+  fromRow: number | null;
+  fromCol: number | null;
   toRow: number;
   toCol: number;
+}
+
+/**
+ * Response from the server for a game update request
+ */
+ export interface GameUpdateResponse {
+  gameState: CheckersGameState;
 }
 
 /**
  * Payload sent by the client to delete a Town
  */
 export interface GameDeleteRequest {
-  gameID: string;
-}
-
-/**
- * Response from the server for a game create request
- */
-export interface GameCreateResponse {
   gameID: string;
 }
 
@@ -175,18 +214,28 @@ export default class TownsServiceClient {
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
+  async startGame(requestData: GameStartRequest): Promise<GameStartResponse> {
+    const responseWrapper = await this._axios.post<ResponseEnvelope<GameStartResponse>>('/towns/games', requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
   async createGame(requestData: GameCreateRequest): Promise<GameCreateResponse> {
     const responseWrapper = await this._axios.post<ResponseEnvelope<GameCreateResponse>>('/towns/games', requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
-  async updateGame(requestData: GameUpdateRequest): Promise<void> {
-    const responseWrapper = await this._axios.post<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`, requestData);
+  async checkOtherPlayerReadyToPlay(requestData: CheckPlayerReadyRequest): Promise<CheckPlayerReadyResponse> {
+    const responseWrapper = await this._axios.post<ResponseEnvelope<CheckPlayerReadyResponse>>('/towns/games', requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async updateGame(requestData: GameUpdateRequest): Promise<GameUpdateResponse> {
+    const responseWrapper = await this._axios.patch<ResponseEnvelope<GameUpdateResponse>>(`/towns/games/${requestData.gameID}`, requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
   async deleteGame(requestData: GameDeleteRequest): Promise<void> {
-    const responseWrapper = await this._axios.post<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`);
+    const responseWrapper = await this._axios.delete<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 

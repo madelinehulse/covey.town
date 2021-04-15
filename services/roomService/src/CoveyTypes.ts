@@ -6,8 +6,3 @@ export type UserLocation = {
   moving: boolean;
 };
 export type CoveyTownList = { friendlyName: string; coveyTownID: string; currentOccupancy: number; maximumOccupancy: number }[];
-export type Piece = {
-  isBlack: Boolean;
-  isKing: Boolean
-} | null
-

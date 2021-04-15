@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { isShorthandPropertyAssignment } from 'typescript';
-import Checker from '../Checkers/Checker';
 
 export default class CheckersGame extends Phaser.Scene {
 

@@ -186,6 +186,7 @@ async function GameController(initData: TownJoinResponse,
     dispatchAppUpdate({ action: 'weMoved', location });
   };
 
+
   dispatchAppUpdate({
     action: 'doConnect',
     data: {
@@ -232,13 +233,9 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
     return (
       <div>
         <WorldMap />
-        <div id="overlay">
-          <Popup />
-        </div>
         <div id="overlay" hidden={hasNearbyPlayer}>
-             <ReactCheckers playerUserName={appState.userName} playerID={appState.myPlayerID} playerLocation={appState.currentLocation}/>
+             <ReactCheckers appState={appState}/>
          </div>
-        
         <VideoOverlay preferredMode="fullwidth" />
       </div>
     );

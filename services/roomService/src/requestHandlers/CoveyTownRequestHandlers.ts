@@ -5,7 +5,7 @@ import { CoveyTownList, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
 import CheckersStore from '../../src/checkers/CheckersStore';
-import { ServerPlayer } from '../client/TownsServiceClient';
+import { CheckersGameState, ServerPlayer } from '../client/TownsServiceClient';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -47,21 +47,6 @@ export interface TownCreateRequest {
 }
 
 /**
- * Payload sent by client to create a game in town
- */
-export interface GameCreateRequest {
-  player1: ServerPlayer;
-  player2: ServerPlayer;
-}
-
-/**
- * Response from the server for a game create request
- */
-export interface GameCreateResponse {
-  gameID: string;
-}
-
-/**
  * Response from the server for a Town create request
  */
 export interface TownCreateResponse {
@@ -97,9 +82,24 @@ export interface TownUpdateRequest {
 }
 
 /**
- * Payload sent by the client to update a Town.
- * N.B., JavaScript is terrible, so:
- * if(!isPubliclyListed) -> evaluates to true if the value is false OR undefined, use ===
+ * Payload sent by client to create a game in town
+ */
+ export interface GameCreateRequest {
+  player1: ServerPlayer;
+  player2: ServerPlayer;
+}
+
+/**
+ * Response from the server for a game create request
+ */
+export interface GameCreateResponse {
+  gameID: string;
+  otherPlayerReady: boolean;
+  gameState: CheckersGameState;
+}
+
+/**
+ * Payload sent by the client to update a Game.
  */
 export interface GameUpdateRequest {
   gameID: string;
@@ -187,12 +187,13 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
 
 export async function gameCreateHandler(requestData: GameCreateRequest): Promise<ResponseEnvelope<GameCreateResponse>> {
   const gamesStore = CheckersStore.getInstance();
-
   const newGame = gamesStore.createGame(requestData.player1, requestData.player2);
   return {
     isOK: true,
     response: {
       gameID: newGame.gameID,
+      otherPlayerReady: newGame.otherPlayerJoined,
+      gameState: newGame.retrieveGameState(),
     },
   };
 }

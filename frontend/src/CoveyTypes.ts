@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io-client';
 import Player, { UserLocation } from './classes/Player';
 import TownsServiceClient from './classes/TownsServiceClient';
+import { Checker } from './components/world/CheckerTypes'
 
 export type CoveyEvent = 'playerMoved' | 'playerAdded' | 'playerRemoved';
 

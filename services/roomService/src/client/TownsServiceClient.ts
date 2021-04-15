@@ -4,7 +4,20 @@ import { UserLocation } from '../CoveyTypes';
 
 
 export type ServerPlayer = { _id: string, _userName: string, location: UserLocation };
-
+export type Checker = {
+  isBlack: Boolean;
+  isKing: Boolean
+} | null
+export type CheckersGameState = {
+  gameID: string,
+  board: Checker[][],
+  player1: ServerPlayer | null,
+  player2: ServerPlayer | null,
+  myPlayerTurn: boolean,
+  redPieces: number,
+  blackPieces: number,
+  isGameOver: boolean
+}
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
  */
@@ -63,6 +76,15 @@ export interface TownCreateResponse {
 }
 
 /**
+ * Response from the server for a game create request
+ */
+ export interface GameCreateResponse {
+  gameID: string;
+  otherPlayerReady: boolean;
+  gameState: CheckersGameState;
+}
+
+/**
  * Payload sent by the client to delete a Town
  */
 export interface GameUpdateRequest {
@@ -77,13 +99,6 @@ export interface GameUpdateRequest {
  * Payload sent by the client to delete a Town
  */
 export interface GameDeleteRequest {
-  gameID: string;
-}
-
-/**
- * Response from the server for a game create request
- */
-export interface GameCreateResponse {
   gameID: string;
 }
 

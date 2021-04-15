@@ -1,6 +1,5 @@
 import { nanoid } from "nanoid";
-import { ServerPlayer } from "../client/TownsServiceClient";
-import { Piece } from "../CoveyTypes"
+import { CheckersGameState, Checker, ServerPlayer } from "../client/TownsServiceClient";
 import Player from "../types/Player";
 
 export default class CheckersController {
@@ -15,7 +14,7 @@ export default class CheckersController {
 
     private _player2: ServerPlayer;
 
-    private board: Piece[][] = [[]];
+    private board: Checker[][] = [[]];
 
     private player1Turn: boolean;
 
@@ -23,6 +22,7 @@ export default class CheckersController {
 
 	private redPieces: number;
 
+	otherPlayerJoined: boolean;
 
  constructor(player1: ServerPlayer, player2: ServerPlayer) {
      this._gameID = nanoid(8);
@@ -32,23 +32,37 @@ export default class CheckersController {
      this.player1Turn = true;
      this.blackPieces = 12;
      this.redPieces = 12;
+	 this.otherPlayerJoined = false;
  }   
+
+ retrieveGameState(): CheckersGameState {
+	return {
+		gameID: this._gameID,
+		board: this.board,
+		player1: this._player1,
+		player2: this._player2,
+		myPlayerTurn: this.player1Turn,
+		redPieces: this.redPieces,
+		blackPieces: this.blackPieces,
+		isGameOver: false
+	};
+ }
 
  // Builds a static hardcoded board (As start board is always the same)
  createBoard() {
 	 const empty = null;
-	 const redPiece: Piece = {isBlack: false, isKing: false,};
-	 const blackPiece: Piece = {isBlack: false, isKing: false,};
+	 const redPiece: Checker = {isBlack: false, isKing: false,};
+	 const blackPiece: Checker = {isBlack: false, isKing: false,};
 
-	 const row0: Piece[] = [empty,redPiece,empty,redPiece,empty,redPiece,empty,redPiece];
-	 const row1: Piece[] = [redPiece,empty,redPiece,empty,redPiece,empty,redPiece,empty];
-	 const row2: Piece[] = [empty,redPiece,empty,redPiece,empty,redPiece,empty,redPiece];
-	 const row3: Piece[] = [empty,empty,empty,empty,empty,empty,empty,empty]
-	 const row4: Piece[] = [empty,empty,empty,empty,empty,empty,empty,empty]
-	 const row5: Piece[] = [blackPiece,empty,blackPiece,empty,blackPiece,empty,blackPiece,empty];
-	 const row6: Piece[] = [empty,blackPiece,empty,blackPiece,empty,blackPiece,empty,blackPiece];
-	 const row7: Piece[] = [blackPiece,empty,blackPiece,empty,blackPiece,empty,blackPiece,empty];
-	 const newBoard: Piece[][] = [row0, row1, row2, row3, row4, row5, row6, row7];
+	 const row0: Checker[] = [empty,redPiece,empty,redPiece,empty,redPiece,empty,redPiece];
+	 const row1: Checker[] = [redPiece,empty,redPiece,empty,redPiece,empty,redPiece,empty];
+	 const row2: Checker[] = [empty,redPiece,empty,redPiece,empty,redPiece,empty,redPiece];
+	 const row3: Checker[] = [empty,empty,empty,empty,empty,empty,empty,empty]
+	 const row4: Checker[] = [empty,empty,empty,empty,empty,empty,empty,empty]
+	 const row5: Checker[] = [blackPiece,empty,blackPiece,empty,blackPiece,empty,blackPiece,empty];
+	 const row6: Checker[] = [empty,blackPiece,empty,blackPiece,empty,blackPiece,empty,blackPiece];
+	 const row7: Checker[] = [blackPiece,empty,blackPiece,empty,blackPiece,empty,blackPiece,empty];
+	 const newBoard: Checker[][] = [row0, row1, row2, row3, row4, row5, row6, row7];
 
      return newBoard;
  }
