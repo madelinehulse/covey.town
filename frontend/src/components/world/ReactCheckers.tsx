@@ -2,6 +2,7 @@ import { useToast } from '@chakra-ui/react';
 import Phaser from 'phaser';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Socket } from 'socket.io-client';
+import { YearlyInstance } from 'twilio/lib/rest/api/v2010/account/usage/record/yearly';
 import Player, { UserLocation } from '../../classes/Player';
 import { CoveyAppState } from '../../CoveyTypes';
 import useCoveyAppState from '../../hooks/useCoveyAppState';
@@ -96,9 +97,21 @@ class ReactCheckersScene extends Phaser.Scene {
     this.input.on(
       'drag',
       (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
+
+        const computeLoc = (x: number, y: number) => {
+          const column = (x - 90) / 60;
+          const row = (y - 90) / 60;
+          return { col: column, row };
+        };
+
         const object = gameObject;
+        // Store old location
+        const oldLoc = computeLoc(object.x, object.y);
+        console.log(oldLoc);
         object.x = dragX;
         object.y = dragY;
+        const newLoc = computeLoc(object.x, object.y);
+        console.log(newLoc);
       },
     );
   }
@@ -139,37 +152,6 @@ class ReactCheckersScene extends Phaser.Scene {
   }
 
   addCheckersToBoard(container: Phaser.GameObjects.Container) {
-    // // Iterate through rows of the board
-    // for (let r = 0; r <= 7; r += 1) {
-    //   switch (r) {
-    //     case 0:
-    //       this.addCheckerRow(r, 'redChecker', 2, container);
-    //       break;
-    //     case 1:
-    //       this.addCheckerRow(r, 'redChecker', 1, container);
-    //       break;
-    //     case 2:
-    //       this.addCheckerRow(r, 'redChecker', 2, container);
-    //       break;
-    //     case 3:
-    //       // (no checkers)
-    //       break;
-    //     case 4:
-    //       // (no checkers)
-    //       break;
-    //     case 5:
-    //       this.addCheckerRow(r, 'blackChecker', 1, container);
-    //       break;
-    //     case 6:
-    //       this.addCheckerRow(r, 'blackChecker', 2, container);
-    //       break;
-    //     case 7:
-    //       this.addCheckerRow(r, 'blackChecker', 1, container);
-    //       break;
-    //     default:
-    //       break;
-    //   }
-    // }
     for (let r = 0; r < this.gameState.board.length; r += 1) {
       for (let c = 0; c < this.gameState.board[r].length; c += 1) {
         const spacePiece = this.gameState.board[r][c];
@@ -207,12 +189,6 @@ class ReactCheckersScene extends Phaser.Scene {
         }
       }
     }
-    // this.gameState.board.forEach(row => {
-    //   row.forEach(checker => {
-
-    //   })
-    // });
-    console.log('added checkers to board');
   }
 
   addCheckerRow(row: number, color: string, type: number, container: Phaser.GameObjects.Container) {
@@ -415,42 +391,3 @@ export default function ReactCheckers({
 
   return <div id='board-container' style={{ display: hasNearbyPlayer ? 'block' : 'none' }} />;
 }
-
-// // Check if the other player has indicated that they are ready to start playing
-  // useEffect(() => {
-  //   // Check if other player has started game
-  //   checkOtherPlayerReady();
-  //   const timer = setInterval(checkOtherPlayerReady, 2000);
-  //   // If not waiting for other player, stop checking
-  //   if (!waitingForOtherPlayer) {
-  //     toast({
-  //       title: 'Other player is ready to play!',
-  //       status: 'success',
-  //       isClosable: true,
-  //       duration: null,
-  //     });
-  //     clearInterval(timer);
-  //     // Set-up GameBoard
-  //     // TODO - 
-  //   }
-  // }, [waitingForOtherPlayer]);
-
-  // // Check for game updates on other player's turn
-  // useEffect(() => {
-  //   const timer = setInterval(checkForGameUpdate, 2000);
-  //   if (playingGame) {
-  //     checkForGameUpdate();
-  //   } else {
-  //     console.log('game not being played');
-  //     clearInterval(timer);
-  //   }
-  // })
-
-  // const checkOtherPlayerReady = useCallback(() => {
-  //   console.log('checking if other player is ready');
-  //   apiClient.checkOtherPlayerReadyToPlay({ otherPlayerID: nearbyPlayer1.id }).then(res => {
-  //     if (res.otherPlayerReady) {
-  //       setWaitingForOtherPlayer(res.otherPlayerReady);
-  //     }
-  //   });
-  // }, [waitingForOtherPlayer]);
