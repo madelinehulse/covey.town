@@ -48,6 +48,10 @@ export default class CheckersController {
 	};
  }
 
+ getBoard(): Checker[][] {
+	 return this.board;
+ }
+
  // Builds a static hardcoded board (As start board is always the same)
  createBoard() {
 	 const empty = null;

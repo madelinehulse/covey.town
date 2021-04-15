@@ -53,7 +53,7 @@ class ReactCheckersScene extends Phaser.Scene {
     this.gameState = gameState;
   }
 
-  init(data: any) {
+  init() {
     this.scene.bringToTop();
   }
 
@@ -74,12 +74,14 @@ class ReactCheckersScene extends Phaser.Scene {
   }
 
   create() {
+    
     // Create container
     const windowContainer = this.add.container(
       this.game.renderer.width * 0.2,
       this.game.renderer.height * 0.1,
     );
 
+    if (!this.gameState.player1) {
     // Add play button and background image
     const playButton: Phaser.GameObjects.Image = this.addPlayButton(150, 350, windowContainer);
     const backgroundImage = this.add
@@ -87,6 +89,9 @@ class ReactCheckersScene extends Phaser.Scene {
       .setScale(0.75, 0.75)
       .setOrigin(0);
     windowContainer.add([backgroundImage, playButton]);
+    } else {
+      this.startGame(windowContainer);
+    }
 
     this.input.on(
       'drag',
@@ -100,21 +105,17 @@ class ReactCheckersScene extends Phaser.Scene {
 
   addPlayButton(x: number, y: number, container: Phaser.GameObjects.Container) {
     const playButton = this.add.image(x, y, 'play-button', 1).setOrigin(0).setInteractive();
-
     // Add tint on button hover
     playButton.on('pointerover', () => {
       playButton.setTint(0x44ff44);
     });
-
     // Clear tint on hover exit
     playButton.on('pointerout', () => {
       playButton.clearTint();
     });
-
     playButton.on(
       'pointerup',
       () => {
-        // this.handleStartFunction();
         this.handleCreateFunction();
         this.startGame(container);
       },
@@ -133,43 +134,84 @@ class ReactCheckersScene extends Phaser.Scene {
       .setScale(0.75, 0.75)
       .setOrigin(0);
     this.addCheckersToBoard(container);
-
     container.add(gameboardImage);
     container.sendToBack(gameboardImage);
   }
 
   addCheckersToBoard(container: Phaser.GameObjects.Container) {
-    // Iterate through rows of the board
-    for (let r = 0; r <= 7; r += 1) {
-      switch (r) {
-        case 0:
-          this.addCheckerRow(r, 'redChecker', 2, container);
-          break;
-        case 1:
-          this.addCheckerRow(r, 'redChecker', 1, container);
-          break;
-        case 2:
-          this.addCheckerRow(r, 'redChecker', 2, container);
-          break;
-        case 3:
-          // (no checkers)
-          break;
-        case 4:
-          // (no checkers)
-          break;
-        case 5:
-          this.addCheckerRow(r, 'blackChecker', 1, container);
-          break;
-        case 6:
-          this.addCheckerRow(r, 'blackChecker', 2, container);
-          break;
-        case 7:
-          this.addCheckerRow(r, 'blackChecker', 1, container);
-          break;
-        default:
-          break;
+    // // Iterate through rows of the board
+    // for (let r = 0; r <= 7; r += 1) {
+    //   switch (r) {
+    //     case 0:
+    //       this.addCheckerRow(r, 'redChecker', 2, container);
+    //       break;
+    //     case 1:
+    //       this.addCheckerRow(r, 'redChecker', 1, container);
+    //       break;
+    //     case 2:
+    //       this.addCheckerRow(r, 'redChecker', 2, container);
+    //       break;
+    //     case 3:
+    //       // (no checkers)
+    //       break;
+    //     case 4:
+    //       // (no checkers)
+    //       break;
+    //     case 5:
+    //       this.addCheckerRow(r, 'blackChecker', 1, container);
+    //       break;
+    //     case 6:
+    //       this.addCheckerRow(r, 'blackChecker', 2, container);
+    //       break;
+    //     case 7:
+    //       this.addCheckerRow(r, 'blackChecker', 1, container);
+    //       break;
+    //     default:
+    //       break;
+    //   }
+    // }
+    for (let r = 0; r < this.gameState.board.length; r += 1) {
+      for (let c = 0; c < this.gameState.board[r].length; c += 1) {
+        const spacePiece = this.gameState.board[r][c];
+        if (spacePiece) {
+          let checker: Phaser.GameObjects.Image;
+          // If black checker
+          if (spacePiece.isBlack) {
+            if (spacePiece.isKing) {
+              checker = this.add
+              .image(c * 60 + 90, r * 60 + 90, 'blackCheckerKing')
+              .setScale(0.75, 0.75)
+              .setInteractive();
+            } else {
+              checker = this.add
+              .image(c * 60 + 90, r * 60 + 90, 'blackChecker')
+              .setScale(0.75, 0.75)
+              .setInteractive();
+            }
+          } 
+          // If red checker
+          else if (spacePiece.isKing) {
+              checker = this.add
+              .image(c * 60 + 90, r * 60 + 90, 'redCheckerKing')
+              .setScale(0.75, 0.75)
+              .setInteractive();
+          }
+          else {
+              checker = this.add
+              .image(c * 60 + 90, r * 60 + 90, 'redChecker')
+              .setScale(0.75, 0.75)
+              .setInteractive();
+          }
+          this.input.setDraggable(checker);
+          container.add(checker);
+        }
       }
     }
+    // this.gameState.board.forEach(row => {
+    //   row.forEach(checker => {
+
+    //   })
+    // });
     console.log('added checkers to board');
   }
 
@@ -286,8 +328,9 @@ export default function ReactCheckers({
         player2: { _id: nearbyPlayer1.id, _userName: nearbyPlayer1.userName, location: nearbyPlayer1.location! },
       });
       console.log(newGameInfo.gameID);
-      // setGameState(newGameInfo.gameState);
+      console.log(newGameInfo.board);
       console.log(gameState);
+      setGameState(newGameInfo.gameState);
       console.log(newGameInfo.gameState);
       // Message to display to player
       let msg = '';

@@ -5,7 +5,7 @@ import { CoveyTownList, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
 import CheckersStore from '../../src/checkers/CheckersStore';
-import { CheckersGameState, ServerPlayer } from '../client/TownsServiceClient';
+import { Checker, CheckersGameState, ServerPlayer } from '../client/TownsServiceClient';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -96,6 +96,7 @@ export interface GameCreateResponse {
   gameID: string;
   otherPlayerReady: boolean;
   gameState: CheckersGameState;
+  board: Checker[][];
 }
 
 /**
@@ -188,12 +189,14 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
 export async function gameCreateHandler(requestData: GameCreateRequest): Promise<ResponseEnvelope<GameCreateResponse>> {
   const gamesStore = CheckersStore.getInstance();
   const newGame = gamesStore.createGame(requestData.player1, requestData.player2);
+  const gameState = newGame.retrieveGameState();
   return {
     isOK: true,
     response: {
       gameID: newGame.gameID,
       otherPlayerReady: newGame.otherPlayerJoined,
-      gameState: newGame.retrieveGameState(),
+      gameState: gameState,
+      board: newGame.getBoard(),
     },
   };
 }

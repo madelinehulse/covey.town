@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import assert from 'assert';
 import { ServerPlayer } from './Player';
-import { CheckersGameState } from '../components/world/CheckerTypes';
+import { Checker, CheckersGameState } from '../components/world/CheckerTypes';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -80,6 +80,7 @@ export interface GameCreateRequest {
   gameID: string;
   otherPlayerReady: boolean;
   gameState: CheckersGameState;
+  board: Checker[][];
 }
 
 /**

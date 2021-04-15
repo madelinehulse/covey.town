@@ -82,6 +82,7 @@ export interface TownCreateResponse {
   gameID: string;
   otherPlayerReady: boolean;
   gameState: CheckersGameState;
+  board: Checker[][];
 }
 
 /**
