@@ -28,6 +28,7 @@ import TownsServiceClient, { TownJoinResponse } from './classes/TownsServiceClie
 import Video from './classes/Video/Video';
 import ReactCheckers  from './components/world/ReactCheckers';
 import useNearbyPlayers from './hooks/useNearbyPlayers';
+import { CheckersGameState } from './components/world/CheckerTypes';
 
 type CoveyAppUpdate =
   | { action: 'doConnect'; data: { userName: string, townFriendlyName: string, townID: string,townIsPubliclyListed:boolean, sessionToken: string, myPlayerID: string, socket: Socket, players: Player[], emitMovement: (location: UserLocation) => void } }

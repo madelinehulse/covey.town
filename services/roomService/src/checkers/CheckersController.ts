@@ -67,6 +67,7 @@ export default class CheckersController {
  }
 
  playerJoined(): void {
+	 this.otherPlayerJoined = true;
 	 this.socket1.onPlayerJoined();
 	 this.socket2.onPlayerJoined();
  }

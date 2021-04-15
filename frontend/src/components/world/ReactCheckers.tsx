@@ -233,19 +233,27 @@ export default function ReactCheckers({
   const toast = useToast();
   const [playingGame, setPlayingGame] = useState<boolean>(false);
 
-  // appState.socket?.on('checkersPlayerMove', (gameState: CheckersGameState) => {
-    
-  // })
+  appState.socket?.on('moveMade', (newGameState: CheckersGameState) => {
+    console.log('recieved update from other player');
+    setGameState(newGameState);
+  })
+
+  appState.socket?.on('playerJoinedGame', () => {
+    if (waitingForOtherPlayer) {
+      console.log('other player joined game');
+      toast({
+        title: `Other player has joined the game!`,
+        status: 'success',
+        isClosable: true,
+        duration: null,
+      });
+      setWaitingForOtherPlayer(false);
+    }
+  })
 
   const checkForGameUpdate = useCallback(() => {
     console.log('checking for game updates');
   }, []);
-
-  useEffect(() => {
-    // maybe pass a new game scene here?
-    console.log(nearbyPlayers);
-    console.log('giraffe');
-  }, [nearbyPlayers]);
 
   async function handleMove() {
     try {
@@ -302,6 +310,7 @@ export default function ReactCheckers({
       const newGameInfo = await apiClient.createGame({
         player1: { _id: appState.myPlayerID, _userName: appState.userName, location: appState.currentLocation! },
         player2: { _id: nearbyPlayer1.id, _userName: nearbyPlayer1.userName, location: nearbyPlayer1.location! },
+        townID: appState.currentTownID,
       });
       console.log(newGameInfo.gameID);
       console.log(newGameInfo.board);
@@ -360,34 +369,6 @@ export default function ReactCheckers({
       game.destroy(true);
     };
   }, [gameState, nearbyPlayers]);
-
-  // useEffect(() => {
-  //   const config = {
-  //     type: Phaser.AUTO,
-  //     parent: 'board-container',
-  //     transparent: true,
-  //     minWidth: 200,
-  //     minHeight: 150,
-  //     physics: {
-  //       default: 'arcade',
-  //       arcade: {
-  //         gravity: { y: 0 }, // Top down game, so no gravity
-  //       },
-  //     },
-  //   };
-  //   console.log('nearby player effect triggered');
-  //   const game = new Phaser.Game(config);
-  //   const newGameScene = new ReactCheckersScene(
-  //     handleCreate,
-  //     handleMove,
-  //     handleDelete,
-  //   );
-  //   game.scene.add('checkers', newGameScene, true);
-
-  //   return () => {
-  //     game.destroy(true);
-  //   };
-  // }, [nearbyPlayers]);
 
   return <div id='board-container' style={{ display: hasNearbyPlayer ? 'block' : 'none' }} />;
 }

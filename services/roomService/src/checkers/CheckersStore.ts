@@ -26,7 +26,7 @@ export default class CheckersStore {
   
   createGame(player1: ServerPlayer, player2: ServerPlayer, townID: string): CheckersController {
     
-    const existingGame = this._games.find(game => (game.player1 === player1) || (game.player2 === player1))
+    const existingGame = this._games.find(game => ((game.player1._id === player1._id) && (game.player2._id === player2._id)) || ((game.player2._id === player1._id) && (game.player1._id === player2._id)));
 
     if (existingGame) {
       existingGame.playerJoined();
