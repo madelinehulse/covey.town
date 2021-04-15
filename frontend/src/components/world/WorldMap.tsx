@@ -549,8 +549,6 @@ export default function WorldMap(): JSX.Element {
   
     // If so, initiate and display GameBoard Scene
     if(hasNearbyPlayer && gameScene && gameScene.scene && !gameScene.checkersBoardLoaded()) {
-      console.log('if statement entered');
-
       const config = {
         type: Phaser.AUTO,
         parent: 'map-container',

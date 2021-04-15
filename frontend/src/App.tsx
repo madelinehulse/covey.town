@@ -8,7 +8,6 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import assert from 'assert';
 import WorldMap from './components/world/WorldMap';
-import Popup from './components/Popup/Popup';
 import VideoOverlay from './components/VideoCall/VideoOverlay/VideoOverlay';
 import { CoveyAppState, NearbyPlayers } from './CoveyTypes';
 import VideoContext from './contexts/VideoContext';
@@ -27,7 +26,6 @@ import Player, { ServerPlayer, UserLocation } from './classes/Player';
 import TownsServiceClient, { TownJoinResponse } from './classes/TownsServiceClient';
 import Video from './classes/Video/Video';
 import ReactCheckers  from './components/world/ReactCheckers';
-import useNearbyPlayers from './hooks/useNearbyPlayers';
 import { CheckersGameState } from './components/world/CheckerTypes';
 
 type CoveyAppUpdate =
@@ -182,6 +180,12 @@ async function GameController(initData: TownJoinResponse,
   socket.on('disconnect', () => {
     dispatchAppUpdate({ action: 'disconnect' });
   });
+  // socket.on('moveMade', (newGameState: CheckersGameState) => {
+  //   console.log('recieved update from other player');
+  // });
+  // socket.on('playerJoinedGame', () => {
+  //   console.log('other player has joined game');
+  // });
   const emitMovement = (location: UserLocation) => {
     socket.emit('playerMovement', location);
     dispatchAppUpdate({ action: 'weMoved', location });
@@ -231,6 +235,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
     } if (!videoInstance) {
       return <div>Loading...</div>;
     }
+    console.log('App loading');
     return (
       <div>
         <WorldMap />

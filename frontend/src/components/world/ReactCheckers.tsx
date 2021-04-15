@@ -1,4 +1,5 @@
 import { useToast } from '@chakra-ui/react';
+import { TurnedIn } from '@material-ui/icons';
 import Phaser from 'phaser';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Socket } from 'socket.io-client';
@@ -10,7 +11,7 @@ import useNearbyPlayers from '../../hooks/useNearbyPlayers';
 import { Checker, CheckersGameState } from './CheckerTypes';
 
 type HandleCreate = () => void;
-type HandleMove = () => void;
+type HandleMove = (oldLoc: {col: number, row: number}, newLoc: {col: number, row: number}) => void;
 type HandleDelete = () => void;
 
 interface CheckersGameProps {
@@ -94,26 +95,37 @@ class ReactCheckersScene extends Phaser.Scene {
       this.startGame(windowContainer);
     }
 
-    this.input.on(
-      'drag',
-      (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
+    // Handle drag input for checkers
+    let origPos: {x: number, y: number} = {x: 0, y: 0};
 
-        const computeLoc = (x: number, y: number) => {
-          const column = (x - 90) / 60;
-          const row = (y - 90) / 60;
-          return { col: column, row };
-        };
+    // Function to compute row and col of checker in gameBoard
+    const computeLoc = (x: number, y: number) => {
+      const column = Math.round((x - 90) / 60);
+      const row = Math.round((y - 90) / 60);
+      return { col: column, row };
+    };
 
+    this.input.on('dragstart', (pointer: Phaser.Input.Pointer, gameObject: any) => {
+      origPos = {x: gameObject.x, y: gameObject.y};
+    });
+
+    this.input.on('drag', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
+      const object = gameObject;
+      object.x = dragX;
+      object.y = dragY;
+    });
+
+    this.input.on('dragend', (pointer: Phaser.Input.Pointer, gameObject: any) => {
+      if (this.gameState.myPlayerTurn) {
+        const origCheckerLoc = computeLoc(origPos.x, origPos.y);
+        const newCheckerLoc = computeLoc(gameObject.x, gameObject.y);
+        this.handleMoveFunction(origCheckerLoc, newCheckerLoc);
+      } else {
         const object = gameObject;
-        // Store old location
-        const oldLoc = computeLoc(object.x, object.y);
-        console.log(oldLoc);
-        object.x = dragX;
-        object.y = dragY;
-        const newLoc = computeLoc(object.x, object.y);
-        console.log(newLoc);
-      },
-    );
+        object.x = origPos.x;
+        object.y = origPos.y;
+      }
+    });
   }
 
   addPlayButton(x: number, y: number, container: Phaser.GameObjects.Container) {
@@ -231,38 +243,34 @@ export default function ReactCheckers({
   const [waitingForOtherPlayer, setWaitingForOtherPlayer] = useState<boolean>(false);
   const { apiClient } = useCoveyAppState();
   const toast = useToast();
-  const [playingGame, setPlayingGame] = useState<boolean>(false);
 
   appState.socket?.on('moveMade', (newGameState: CheckersGameState) => {
     console.log('recieved update from other player');
     setGameState(newGameState);
-  })
+  });
 
-  appState.socket?.on('playerJoinedGame', () => {
+  useEffect(() => {
     if (waitingForOtherPlayer) {
-      console.log('other player joined game');
-      toast({
-        title: `Other player has joined the game!`,
-        status: 'success',
-        isClosable: true,
-        duration: null,
+      appState.socket?.on('playerJoinedGame', () => {
+        setWaitingForOtherPlayer(false);
+        toast({
+          title: `Other player has joined the game!`,
+          status: 'success',
+          isClosable: true,
+          duration: null,
+        });
       });
-      setWaitingForOtherPlayer(false);
     }
-  })
+  }, [waitingForOtherPlayer]);
 
-  const checkForGameUpdate = useCallback(() => {
-    console.log('checking for game updates');
-  }, []);
-
-  async function handleMove() {
+  async function handleMove(oldLoc: {col: number, row: number}, newLoc: {col: number, row: number}) {
     try {
       const gameUpdate = await apiClient.updateGame({
-        gameID: '',
-        toRow: 0,
-        toCol: 0,
-        fromRow: 0,
-        fromCol: 0,
+        gameID: gameState.gameID,
+        toRow: newLoc.row,
+        toCol: newLoc.col,
+        fromRow: oldLoc.col,
+        fromCol: oldLoc.row,
       });
       toast({
         title: `You made a move!`,
@@ -271,9 +279,10 @@ export default function ReactCheckers({
         isClosable: true,
         duration: null,
       });
-    } catch (err) {
-      console.log(err.toString());
-      console.log('toast');
+      console.log('game updated with player move');
+      console.log(gameUpdate.gameState);
+      setGameState(gameUpdate.gameState);
+    } catch (err) {;
       toast({
         title: 'Invalid move',
         description: err.toString(),
@@ -295,8 +304,6 @@ export default function ReactCheckers({
         duration: null,
       });
     } catch (err) {
-      console.log(err.toString());
-      console.log('toast');
       toast({
         title: 'Cannot end game',
         description: err.toString(),
@@ -332,7 +339,6 @@ export default function ReactCheckers({
         duration: null,
       });
     } catch (err) {
-      console.log(err.toString());
       toast({
         title: 'Unable to start game',
         description: err.toString(),
@@ -355,7 +361,6 @@ export default function ReactCheckers({
         },
       },
     };
-    console.log('gameState effect triggered');
     const game = new Phaser.Game(config);
     const newGameScene = new ReactCheckersScene(
       handleCreate,
