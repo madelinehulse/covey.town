@@ -1,5 +1,8 @@
+import { Socket } from "dgram";
 import { nanoid } from "nanoid";
 import { CheckersGameState, Checker, ServerPlayer } from "../client/TownsServiceClient";
+import CoveyTownsStore from "../lib/CoveyTownsStore";
+import GameListener from "../types/GameListener";
 import Player from "../types/Player";
 
 export default class CheckersController {
@@ -7,6 +10,14 @@ export default class CheckersController {
     get gameID() {
         return this._gameID;
     }
+
+	get player1() {
+		return this._player1;
+	}
+
+	get player2() {
+		return this._player2;
+	}
     
     private _gameID: string;
 
@@ -24,7 +35,12 @@ export default class CheckersController {
 
 	otherPlayerJoined: boolean;
 
- constructor(player1: ServerPlayer, player2: ServerPlayer) {
+	private socket1: GameListener;
+
+	private socket2: GameListener;
+
+
+ constructor(player1: ServerPlayer, player2: ServerPlayer, listener1: GameListener, listener2: GameListener) {
      this._gameID = nanoid(8);
      this._player1 = player1;
      this._player2 = player2;
@@ -33,6 +49,8 @@ export default class CheckersController {
      this.blackPieces = 12;
      this.redPieces = 12;
 	 this.otherPlayerJoined = false;
+	 this.socket1 = listener1;
+	 this.socket2 = listener2;
  }   
 
  retrieveGameState(): CheckersGameState {
@@ -48,15 +66,17 @@ export default class CheckersController {
 	};
  }
 
- getBoard(): Checker[][] {
-	 return this.board;
+ playerJoined(): void {
+	 this.socket1.onPlayerJoined();
+	 this.socket2.onPlayerJoined();
  }
+
 
  // Builds a static hardcoded board (As start board is always the same)
  createBoard() {
 	 const empty = null;
 	 const redPiece: Checker = {isBlack: false, isKing: false,};
-	 const blackPiece: Checker = {isBlack: false, isKing: false,};
+	 const blackPiece: Checker = {isBlack: true, isKing: false,};
 
 	 const row0: Checker[] = [empty,redPiece,empty,redPiece,empty,redPiece,empty,redPiece];
 	 const row1: Checker[] = [redPiece,empty,redPiece,empty,redPiece,empty,redPiece,empty];
@@ -82,6 +102,9 @@ movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number):boolea
 		if(!this.isCurrentKing(fromRow,fromCol)) {
 			return this.normalMove(fromRow, fromCol, toRow, toCol);
 		}
+		const gameState = this.retrieveGameState();
+		this.socket1.onMoveMade(gameState);
+		this.socket2.onMoveMade(gameState);
 }
 	//No piece - Invalid, return false
 	return false;
@@ -360,4 +383,5 @@ updateCount(fromRow:number, fromCol:number) {
 		this.blackPieces -=1;
 	}
 }
+
 }

@@ -5,6 +5,7 @@ import Player from '../types/Player';
 import PlayerSession from '../types/PlayerSession';
 import TwilioVideo from './TwilioVideo';
 import IVideoClient from './IVideoClient';
+import { Socket } from 'socket.io';
 
 const friendlyNanoID = customAlphabet('1234567890ABCDEF', 8);
 
@@ -73,12 +74,27 @@ export default class CoveyTownController {
 
   private _capacity: number;
 
+  private _sockets: Map<string, Socket> = new Map<string, Socket>();
+
   constructor(friendlyName: string, isPubliclyListed: boolean) {
     this._coveyTownID = (process.env.DEMO_TOWN_ID === friendlyName ? friendlyName : friendlyNanoID());
     this._capacity = 50;
     this._townUpdatePassword = nanoid(24);
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
+  }
+
+  addSocket(playerID: string, socket: Socket): void {
+    this._sockets.set(playerID, socket);
+  }
+
+  getSocket(playerID: string): Socket {
+    const socket = this._sockets.get(playerID);
+    if (socket) {
+      return socket;
+    }
+
+    else throw new Error();
   }
 
   /**
