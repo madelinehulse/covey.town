@@ -1,11 +1,8 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Phaser from 'phaser';
 import Player, { UserLocation } from '../../classes/Player';
 import Video from '../../classes/Video/Video';
 import useCoveyAppState from '../../hooks/useCoveyAppState';
-import useNearbyPlayers from '../../hooks/useNearbyPlayers';
-import NearbyPlayersContext from '../../contexts/NearbyPlayersContext';
-import CheckersGame from './CheckersGame';
 
 // https://medium.com/@michaelwesthadley/modular-game-worlds-in-phaser-3-tilemaps-1-958fc7e6bbd6
 class CoveyGameScene extends Phaser.Scene {
@@ -13,7 +10,7 @@ class CoveyGameScene extends Phaser.Scene {
     sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody, label: Phaser.GameObjects.Text
   };
 
-  private id?: string;
+  private myPlayerID: string;
 
   private players: Player[] = [];
 
@@ -36,12 +33,11 @@ class CoveyGameScene extends Phaser.Scene {
 
   private emitMovement: (loc: UserLocation) => void;
 
-  private isCheckersBoardLoaded = false;
-
-  constructor(video: Video, emitMovement: (loc: UserLocation) => void) {
+  constructor(video: Video, emitMovement: (loc: UserLocation) => void, myPlayerID : string) {
     super('PlayGame');
     this.video = video;
     this.emitMovement = emitMovement;
+    this.myPlayerID = myPlayerID;
   }
 
   preload() {
@@ -94,7 +90,7 @@ class CoveyGameScene extends Phaser.Scene {
       myPlayer = new Player(player.id, player.userName, location);
       this.players.push(myPlayer);
     }
-    if (this.id !== myPlayer.id && this.physics && player.location) {
+    if (this.myPlayerID !== myPlayer.id && this.physics && player.location) {
       let { sprite } = myPlayer;
       if (!sprite) {
         sprite = this.physics.add
@@ -194,7 +190,8 @@ class CoveyGameScene extends Phaser.Scene {
       this.player.label.setY(body.y - 20);
       if (!this.lastLocation
         || this.lastLocation.x !== body.x
-        || this.lastLocation.y !== body.y || this.lastLocation.rotation !== primaryDirection
+        || this.lastLocation.y !== body.y
+        || (isMoving && this.lastLocation.rotation !== primaryDirection)
         || this.lastLocation.moving !== isMoving) {
         if (!this.lastLocation) {
           this.lastLocation = {
@@ -394,61 +391,6 @@ class CoveyGameScene extends Phaser.Scene {
     camera.startFollow(this.player.sprite);
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    // popup with fixed pos on screen
-    // TODO: put this code into its own class
-    // this.add.text(300, 300, 'Checkers', {
-    //   font: '30px monospace',
-    //     color: '#000000',
-    //     padding: {
-    //       left: 130,
-    //       right: 130,
-    //       top: 30,
-    //       bottom: 200
-    //     },
-    //     backgroundColor: '#ffffff',
-    //   })
-    //   .setScrollFactor(0)
-    //   .setDepth(33);
-    // gets set to true when 'play game' is clicked
-    // let playingGame = false;
-    // const playGameButton = this.add.text(300, 300, 'Play Game', { 
-    //   font: '18px monospace',
-    //     color: '#000000',
-    //     padding: {
-    //       left: 130,
-    //       right: 130,
-    //       top: 70,
-    //       bottom: 160
-    //     },
-    //   })
-    //   .setScrollFactor(0)
-    //   .setDepth(34);
-    // playGameButton.setInteractive();
-    // playGameButton.on('mousedown', () => {
-    //   playingGame = true;
-    //   playGameButton.setColor('#ff0000');
-    // });
-
-    // checkerboard that shows when 'play game' is clicked
-    // 0 = white or red, 1 = black
-    // TODO: put this code into its own class
-    const checkerboard = [
-      [0, 1, 0, 1, 0, 1, 0, 1],
-      [1, 0, 1, 0, 1, 0, 1, 0],
-      [0, 1, 0, 1, 0, 1, 0, 1],
-      [1, 0, 1, 0, 1, 0, 1, 0],
-      [0, 1, 0, 1, 0, 1, 0, 1],
-      [1, 0, 1, 0, 1, 0, 1, 0],
-      [0, 1, 0, 1, 0, 1, 0, 1],
-      [1, 0, 1, 0, 1, 0, 1, 0],
-    ];
-    // drawing it
-
-    // drawing game piece
-    // TODO: game piece class
-    // const redPiece = this.add.ellipse(724, 617, 56, 56, 0xff0000).setDepth(33);
-    // const blackPiece = this.add.ellipse(660, 617, 56, 56, 0x0000000).setDepth(33);
-
     // Help text that has a "fixed" position on the screen
     this.add
       .text(16, 16, `Arrow keys to move, space to transport\nCurrent town: ${this.video.townFriendlyName} (${this.video.coveyTownID})`, {
@@ -479,24 +421,18 @@ class CoveyGameScene extends Phaser.Scene {
 
   resume() {
     this.paused = false;
-    this.input.keyboard.addCapture(this.previouslyCapturedKeys);
+    if(Video.instance()){
+      // If the game is also in process of being torn down, the keyboard could be undefined
+      this.input.keyboard.addCapture(this.previouslyCapturedKeys);
+    }
     this.previouslyCapturedKeys = [];
   }
-
-  checkersBoardLoaded() {
-    return this.isCheckersBoardLoaded;
-  }
-
-  setCheckersBoardLoaded(state :boolean) {
-    this.isCheckersBoardLoaded = state;
-  }
-
 }
 
 export default function WorldMap(): JSX.Element {
   const video = Video.instance();
   const {
-    emitMovement, players
+    emitMovement, players, myPlayerID,
   } = useCoveyAppState();
   const [gameScene, setGameScene] = useState<CoveyGameScene>();
   useEffect(() => {
@@ -513,10 +449,9 @@ export default function WorldMap(): JSX.Element {
       },
     };
     
-
     const game = new Phaser.Game(config);
     if (video) {
-      const newGameScene = new CoveyGameScene(video, emitMovement);
+      const newGameScene = new CoveyGameScene(video, emitMovement, myPlayerID);
       setGameScene(newGameScene);
       game.scene.add('coveyBoard', newGameScene, true);
       
@@ -531,44 +466,12 @@ export default function WorldMap(): JSX.Element {
     return () => {
       game.destroy(true);
     };
-  }, [video, emitMovement]);
+  }, [video, emitMovement, myPlayerID]);
 
   const deepPlayers = JSON.stringify(players);
  
-  const { nearbyPlayers } = useNearbyPlayers();
-  const hasNearbyPlayer = nearbyPlayers.length > 0;
-
   useEffect(() => {
-    // triggered when players move 
-    // keep track of whether board has been created or not bool
-    // gameScene.scene.get with gameBoard key
-    // game board singleton
-    // scene can be visible/invisible
-    // coveygamescene could have method showGameBoard/hideGameBoard
     gameScene?.updatePlayersLocations(players);
-  
-    // If so, initiate and display GameBoard Scene
-    if(hasNearbyPlayer && gameScene && gameScene.scene && !gameScene.checkersBoardLoaded()) {
-      const config = {
-        type: Phaser.AUTO,
-        parent: 'map-container',
-        minWidth: 600,
-        minHeight: 600,
-        physics: {
-          default: 'arcade',
-          arcade: {
-            gravity: { y: 0 }, // Top down game, so no gravity
-            debugger: true,
-          },
-        },
-      };
-
-      // only gets drawn if players are in same location at time game loads: does not work if they start apart and come together
-      // const checkersScene = new CheckersGame();
-      // gameScene.scene.add('checkers', checkersScene, true);
-      // console.log('CheckersBoard added');
-      // gameScene.setCheckersBoardLoaded(true);
-    } 
   }, [players, deepPlayers, gameScene]);
 
   return <div id="map-container"/>;
