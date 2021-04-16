@@ -1,10 +1,9 @@
-import { CheckersGameState, ServerPlayer } from "../client/TownsServiceClient";
+import { CheckersGameState } from '../client/TownsServiceClient';
 
 export default interface GameListener {
-    onMoveMade(gameState: CheckersGameState): void;
+  onMoveMade(gameState: CheckersGameState): void;
 
-    onPlayerJoined(): void;
+  onPlayerJoined(): void;
 
-    onGameDestroyed(): void;
-
+  onGameDestroyed(): void;
 }
