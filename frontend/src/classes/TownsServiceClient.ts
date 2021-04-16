@@ -227,7 +227,7 @@ export default class TownsServiceClient {
   }
 
   async deleteGame(requestData: GameDeleteRequest): Promise<void> {
-    const responseWrapper = await this._axios.post<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`);
+    const responseWrapper = await this._axios.delete<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 

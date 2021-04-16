@@ -36,6 +36,25 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
     }
   });
 
+    /**
+   * Delete a game
+   */
+  app.delete('/towns/games/:gameID', BodyParser.json(), async (req, res) => {
+    try {
+      const result = await gameDeleteHandler({
+        gameID: req.params.gameID,
+      });
+      res.status(StatusCodes.OK)
+        .json(result);
+    } catch (err) {
+      logError(err);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({
+          message: 'Internal server error, please see log in server for details',
+        });
+    }
+  });
+
   /**
    * Delete a town
    */
@@ -108,7 +127,7 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
    /**
    * Update a game
    */
-  app.post('/towns/games/:gameID', BodyParser.json(), async (req, res) => {
+  app.patch('/towns/games/:gameID', BodyParser.json(), async (req, res) => {
     try {
       const result = await gameUpdateHandler(req.body);
       res.status(StatusCodes.OK)
@@ -139,24 +158,6 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json({
           message: 'Internal server error, please see log in server for more details',
-        });
-    }
-  });
-  /**
-   * Delete a game
-   */
-  app.patch('/towns/games/:gameID', BodyParser.json(), async (req, res) => {
-    try {
-      const result = await gameDeleteHandler({
-        gameID: req.params.gameID,
-      });
-      res.status(StatusCodes.OK)
-        .json(result);
-    } catch (err) {
-      logError(err);
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json({
-          message: 'Internal server error, please see log in server for details',
         });
     }
   });

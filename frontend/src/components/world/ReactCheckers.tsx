@@ -284,16 +284,18 @@ export default function ReactCheckers({
     appState.socket?.on('moveMade', (newGameState: CheckersGameState) => {
       setGameState(newGameState);
     });
+
+    appState.socket?.on('gameDestroyed', () => {
+      setGameState(defualtCheckersGameState());
+      toast({
+        title: `Opponent left game`,
+        description: <>Find another player to start a game</>,
+        status: 'info',
+        isClosable: true,
+      });
+    });
   }, [gameState]);
 
-  appState.socket?.on('gameDestroyed', () => {
-    toast({
-      title: `Opponent left game`,
-      description: <>Find another player to start a game</>,
-      status: 'info',
-      isClosable: true,
-    });
-  });
 
   useEffect(() => {
     if (waitingForOtherPlayer) {
