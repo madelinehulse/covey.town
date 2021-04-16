@@ -108,7 +108,7 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
    /**
    * Update a game
    */
-  app.post('/towns/games/:gameID', BodyParser.json(), async (req, res) => {
+  app.patch('/towns/games/:gameID', BodyParser.json(), async (req, res) => {
     try {
       const result = await gameUpdateHandler(req.body);
       res.status(StatusCodes.OK)
@@ -145,7 +145,7 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
   /**
    * Delete a game
    */
-  app.patch('/towns/games/:gameID', BodyParser.json(), async (req, res) => {
+  app.delete('/towns/games/:gameID', BodyParser.json(), async (req, res) => {
     try {
       const result = await gameDeleteHandler({
         gameID: req.params.gameID,
