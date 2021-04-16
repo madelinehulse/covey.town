@@ -188,6 +188,7 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
 
 export async function gameCreateHandler(requestData: GameCreateRequest): Promise<ResponseEnvelope<GameCreateResponse>> {
   const gamesStore = CheckersStore.getInstance();
+  try {
   const newGame = gamesStore.createGame(requestData.player1, requestData.player2, requestData.townID);
   return {
     isOK: true,
@@ -197,6 +198,12 @@ export async function gameCreateHandler(requestData: GameCreateRequest): Promise
       gameState: newGame.retrieveGameState(),
     },
   };
+} catch (error) {
+  return {
+    isOK: false,
+    message: "Player in game"
+  }
+}
 }
 
 export async function gameUpdateHandler(requestData: GameUpdateRequest): Promise<ResponseEnvelope<Record<string, null>>> {

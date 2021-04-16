@@ -26,17 +26,23 @@ export default class CheckersStore {
   
   createGame(player1: ServerPlayer, player2: ServerPlayer, townID: string): CheckersController {
     
-    const existingGame = this._games.find(game => ((game.player1._id === player1._id) && (game.player2._id === player2._id)) || ((game.player2._id === player1._id) && (game.player1._id === player2._id)));
+    const existingGame = this._games.find(game => ((game.player1._id === player2._id) && (game.player2._id === player2._id)));
 
-    if (existingGame) {
+    if (existingGame && (existingGame.player1._id === player1._id || existingGame.player2._id === player1._id)) {
       existingGame.playerJoined();
       return existingGame;
     }
+
+    if (existingGame) {
+      throw new Error();
+    }
+   
     else {
     const townsStore = CoveyTownsStore.getInstance();
     const townController = townsStore.getControllerForTown(townID);
 
     if (townController) {
+    
     const socket1 = townController?.getSocket(player1._id);
     const socket2 = townController?.getSocket(player2._id);
   
@@ -49,7 +55,6 @@ export default class CheckersStore {
     this._games.push(newGame);
     return newGame;
     }
-
     else throw new Error();
   }}
 

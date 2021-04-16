@@ -78,6 +78,11 @@ export default class CheckersController {
 	 this.socket2.onPlayerJoined();
  }
 
+ gameDestroyed(): void {
+	 this.socket1.onGameDestroyed();
+	 this.socket2.onGameDestroyed();
+ }
+
 
  // Builds a static hardcoded board (As start board is always the same)
  createBoard() {
