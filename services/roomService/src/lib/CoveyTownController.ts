@@ -59,9 +59,12 @@ export default class CoveyTownController {
   /** The videoClient that this CoveyTown will use to provision video resources * */
   private _videoClient: IVideoClient = TwilioVideo.getInstance();
 
+<<<<<<< HEAD
+=======
   // Field for all sockets. When start a game, game board takes a socket and emits a message to that socket.
   // Checkers store array. For each town, there is a checkers game store.
 
+>>>>>>> master
   /** The list of CoveyTownListeners that are subscribed to events in this town * */
   private _listeners: CoveyTownListener[] = [];
 

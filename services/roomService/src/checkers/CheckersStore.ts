@@ -83,19 +83,13 @@ export default class CheckersStore {
     return false;
   }
 
-  // TODO: We might need something to disconnet all the players when game is over.
-  // Also how are we sending the message of who won the game?
   deleteGame(gameID: string): boolean {
     const existingGame = this.getControllerForGame(gameID);
     if (existingGame) {
       existingGame.gameDestroyed();
       this._games = this._games.filter(game => game !== existingGame);
       return true;
-      // Would we need something like this?
-      // existingTown.disconnectAllPlayers();
     }
     return false;
   }
 }
-
-
