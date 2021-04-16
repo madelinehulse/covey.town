@@ -82,6 +82,8 @@ export default class CheckersStore {
     return false;
   }
 
+  
+
   gameSocketAdapter(socket: Socket): GameListener {
     return {
       onMoveMade(gameState: CheckersGameState) {

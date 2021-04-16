@@ -5,4 +5,6 @@ export default interface GameListener {
 
     onPlayerJoined(): void;
 
+    onGameDestroyed(): void;
+
 }
