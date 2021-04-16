@@ -35,9 +35,7 @@ export default class CheckersController {
 
 	otherPlayerJoined: boolean;
 
-	private socket1: GameListener;
-
-	private socket2: GameListener;
+	private sockets: GameListener[] = [];
 
 	private isGameOver: boolean;
 
@@ -50,10 +48,11 @@ export default class CheckersController {
      this.blackPieces = 12;
      this.redPieces = 12;
 	 this.otherPlayerJoined = false;
-	 this.socket1 = listener1;
-	 this.socket2 = listener2;
 	 this.isGameOver = false;
- }   
+	 this.sockets.push(listener1);
+	 this.sockets.push(listener2);
+ }  
+
 
  retrieveGameState(): CheckersGameState {
 	return {
@@ -74,13 +73,12 @@ export default class CheckersController {
 
  playerJoined(): void {
 	 this.otherPlayerJoined = true;
-	 this.socket1.onPlayerJoined();
-	 this.socket2.onPlayerJoined();
+	 this.sockets.forEach(s => {s.onPlayerJoined()});
  }
 
  gameDestroyed(): void {
-	 this.socket1.onGameDestroyed();
-	 this.socket2.onGameDestroyed();
+	 this.sockets.forEach(s => {s.onGameDestroyed()});
+	 this.sockets = [];
  }
 
 
@@ -150,8 +148,7 @@ normalMove(fromRow: number, fromCol: number, toRow: number, toCol: number): bool
 		this.endTurn();
 		this.checkIsGameOver();
 		const gameState = this.retrieveGameState();
-		this.socket1.onMoveMade(gameState);
-		this.socket2.onMoveMade(gameState);
+		this.sockets.forEach(s => {s.onMoveMade(gameState)});
 		return true;
 	}
 ​   
@@ -175,8 +172,7 @@ normalMove(fromRow: number, fromCol: number, toRow: number, toCol: number): bool
 			this.endTurn();
 			this.checkIsGameOver();
 			const gameState = this.retrieveGameState();
-			this.socket1.onMoveMade(gameState);
-			this.socket2.onMoveMade(gameState);
+			this.sockets.forEach(s => {s.onMoveMade(gameState)});
 			return true;
 		}
 ​
@@ -215,8 +211,7 @@ kingMove(fromRow: number, fromCol: number, toRow: number, toCol: number): boolea
 		this.endTurn();
 		this.checkIsGameOver();
 		const gameState = this.retrieveGameState();
-		this.socket1.onMoveMade(gameState);
-		this.socket2.onMoveMade(gameState);
+		this.sockets.forEach(s => {s.onMoveMade(gameState)});
 		return true;
 		
 	}
@@ -238,8 +233,7 @@ kingMove(fromRow: number, fromCol: number, toRow: number, toCol: number): boolea
 			this.endTurn();
 			this.checkIsGameOver();
 			const gameState = this.retrieveGameState();
-			this.socket1.onMoveMade(gameState);
-			this.socket2.onMoveMade(gameState);
+			this.sockets.forEach(s => {s.onMoveMade(gameState)});
 			return true;
 		}
 ​
