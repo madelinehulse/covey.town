@@ -2,6 +2,13 @@ import { nanoid } from 'nanoid';
 import { Checker, CheckersGameState, ServerPlayer } from '../client/TownsServiceClient';
 import GameListener from '../types/GameListener';
 
+// Checks if a given Row and Column is within the board limits
+function checkBounds(row: number, col: number): boolean {
+  const rowFine = row >= 0 && row < 8;
+  const colFine = col >= 0 && col < 8;
+  return rowFine && colFine;
+}
+
 export default class CheckersController {
   get gameID(): string {
     return this._gameID;
@@ -44,7 +51,7 @@ export default class CheckersController {
     this._gameID = nanoid(8);
     this._player1 = player1;
     this._player2 = player2;
-    this.board = this.createBoard();
+    this.createBoard();
     this.player1Turn = true;
     this.blackPieces = 12;
     this.redPieces = 12;
@@ -86,7 +93,7 @@ export default class CheckersController {
   }
 
   // Builds a static hardcoded board (As start board is always the same)
-  createBoard(): Checker[][] {
+  createBoard(): void {
     const empty = null;
     const row0: Checker[] = [
       empty,
@@ -151,12 +158,12 @@ export default class CheckersController {
       empty,
     ];
     const newBoard: Checker[][] = [row0, row1, row2, row3, row4, row5, row6, row7];
-    return newBoard;
+    this.board = newBoard;
   }
 
   movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): boolean {
     // If the piece color is same as the player turn color && If the target row and column is in the board
-    if (this.correctPiece(fromRow, fromCol) && this.checkBounds(toRow, toCol)) {
+    if (this.correctPiece(fromRow, fromCol) && checkBounds(toRow, toCol)) {
       // If the piece is a King Piece
       if (this.isCurrentKing(fromRow, fromCol)) {
         return this.kingMove(fromRow, fromCol, toRow, toCol);
@@ -456,12 +463,7 @@ checkSingleMove(fromRow:number,fromCol:number,toRow:number,toCol:number): boolea
     return false;
   }
 
-  // Checks if a given Row and Column is within the board limits
-  checkBounds(row: number, col: number): boolean {
-    const rowFine = row >= 0 && row < 8;
-    const colFine = col >= 0 && col < 8;
-    return rowFine && colFine;
-  }
+
 
   checkIsGameOver(): void {
     // Game End Scenario 1: One of them loses all their pieces
@@ -585,7 +587,7 @@ checkSingleMove(fromRow:number,fromCol:number,toRow:number,toCol:number): boolea
 
   // Checks if a single move can be made
   checkSingleMove(fromRow: number, fromCol: number, toRow: number, toCol: number): boolean {
-    if (this.checkBounds(toRow, toCol)) {
+    if (checkBounds(toRow, toCol)) {
       const piece = this.board[fromRow][fromCol];
       const target = this.board[toRow][toCol];
       if (piece && target === null) {
@@ -604,7 +606,7 @@ checkSingleMove(fromRow:number,fromCol:number,toRow:number,toCol:number): boolea
     toRow: number,
     toCol: number,
   ): boolean {
-    if (this.checkBounds(toRow, toCol) && this.checkBounds(midRow, midCol)) {
+    if (checkBounds(toRow, toCol) && checkBounds(midRow, midCol)) {
       const piece = this.board[fromRow][fromCol];
       const midPiece = this.board[midRow][midCol];
       const target = this.board[toRow][toCol];
@@ -640,3 +642,4 @@ checkSingleMove(fromRow:number,fromCol:number,toRow:number,toCol:number): boolea
     }
   }
 }
+

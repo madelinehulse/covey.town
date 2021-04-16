@@ -4,6 +4,20 @@ import CoveyTownsStore from '../lib/CoveyTownsStore';
 import GameListener from '../types/GameListener';
 import CheckersController from './CheckersController';
 
+function gameSocketAdapter(socket: Socket): GameListener {
+  return {
+    onMoveMade(gameState: CheckersGameState) {
+      socket.emit('moveMade', gameState);
+    },
+    onPlayerJoined() {
+      socket.emit('playerJoinedGame');
+    },
+    onGameDestroyed() {
+      socket.emit('gameDestroyed');
+    },
+  };
+}
+
 export default class CheckersStore {
   private static _instance: CheckersStore;
 
@@ -44,8 +58,8 @@ export default class CheckersStore {
         const socket1 = townController?.getSocket(player1._id);
         const socket2 = townController?.getSocket(player2._id);
 
-        const listener1 = this.gameSocketAdapter(socket1);
-        const listener2 = this.gameSocketAdapter(socket2);
+        const listener1 = gameSocketAdapter(socket1);
+        const listener2 = gameSocketAdapter(socket2);
 
         const newGame = new CheckersController(player1, player2, listener1, listener2);
         this._games.push(newGame);
@@ -82,18 +96,6 @@ export default class CheckersStore {
     }
     return false;
   }
-
-  gameSocketAdapter(socket: Socket): GameListener {
-    return {
-      onMoveMade(gameState: CheckersGameState) {
-        socket.emit('moveMade', gameState);
-      },
-      onPlayerJoined() {
-        socket.emit('playerJoinedGame');
-      },
-      onGameDestroyed() {
-        socket.emit('gameDestroyed');
-      },
-    };
-  }
 }
+
+
