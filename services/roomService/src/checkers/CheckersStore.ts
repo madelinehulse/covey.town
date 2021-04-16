@@ -26,7 +26,7 @@ export default class CheckersStore {
   
   createGame(player1: ServerPlayer, player2: ServerPlayer, townID: string): CheckersController {
     
-    const existingGame = this._games.find(game => ((game.player1._id === player2._id) && (game.player2._id === player2._id)));
+    const existingGame = this._games.find(game => ((game.player1._id === player2._id) || (game.player2._id === player2._id)));
 
     if (existingGame && (existingGame.player1._id === player1._id || existingGame.player2._id === player1._id)) {
       existingGame.playerJoined();
@@ -71,7 +71,6 @@ export default class CheckersStore {
   // Also how are we sending the message of who won the game?
   deleteGame(gameID: string): boolean {
     const existingGame = this.getControllerForGame(gameID);
-
     if (existingGame) {
       existingGame.gameDestroyed();
       this._games = this._games.filter(game => game !== existingGame);

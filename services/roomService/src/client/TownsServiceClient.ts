@@ -203,7 +203,7 @@ export default class TownsServiceClient {
   }
 
   async updateGame(requestData: GameUpdateRequest): Promise<void> {
-    const responseWrapper = await this._axios.post<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`, requestData);
+    const responseWrapper = await this._axios.patch<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`, requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 

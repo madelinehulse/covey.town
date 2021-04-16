@@ -216,18 +216,8 @@ export default class TownsServiceClient {
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
-  async startGame(requestData: GameStartRequest): Promise<GameStartResponse> {
-    const responseWrapper = await this._axios.post<ResponseEnvelope<GameStartResponse>>('/towns/games', requestData);
-    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
-  }
-
   async createGame(requestData: GameCreateRequest): Promise<GameCreateResponse> {
     const responseWrapper = await this._axios.post<ResponseEnvelope<GameCreateResponse>>('/towns/games', requestData);
-    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
-  }
-
-  async checkOtherPlayerReadyToPlay(requestData: CheckPlayerReadyRequest): Promise<CheckPlayerReadyResponse> {
-    const responseWrapper = await this._axios.post<ResponseEnvelope<CheckPlayerReadyResponse>>('/towns/games', requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
@@ -237,7 +227,7 @@ export default class TownsServiceClient {
   }
 
   async deleteGame(requestData: GameDeleteRequest): Promise<void> {
-    const responseWrapper = await this._axios.delete<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`);
+    const responseWrapper = await this._axios.post<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
