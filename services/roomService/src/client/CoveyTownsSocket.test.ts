@@ -3,7 +3,12 @@ import Express from 'express';
 import http from 'http';
 import { nanoid } from 'nanoid';
 import { AddressInfo } from 'net';
+<<<<<<< HEAD
 import io from 'socket.io';
+=======
+import * as TestUtils from './TestUtils';
+
+>>>>>>> master
 import { UserLocation } from '../CoveyTypes';
 import addTownRoutes from '../router/towns';
 import * as TestUtils from './TestUtils';
@@ -40,13 +45,12 @@ describe('TownServiceApiSocket', () => {
     };
   }
 
-  let socketServer: io.Server;
   beforeAll(async () => {
     const app = Express();
     app.use(CORS());
     server = http.createServer(app);
 
-    socketServer = addTownRoutes(server, app);
+    addTownRoutes(server, app);
     server.listen();
     const address = server.address() as AddressInfo;
 

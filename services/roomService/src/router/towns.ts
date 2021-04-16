@@ -147,6 +147,10 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
     }
   });
 
+<<<<<<< HEAD
+=======
+  // App.post ,patch delete for checkers game
+>>>>>>> master
 
   const socketServer = new io.Server(http, { cors: { origin: '*' } });
   socketServer.on('connection', townSubscriptionHandler);
