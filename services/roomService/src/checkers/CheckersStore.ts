@@ -72,7 +72,8 @@ export default class CheckersStore {
   deleteGame(gameID: string): boolean {
     const existingGame = this.getControllerForGame(gameID);
 
-    if (existingGame && existingGame.getIsGameOver()) {
+    if (existingGame) {
+      existingGame.gameDestroyed();
       this._games = this._games.filter(game => game !== existingGame);
       return true;
       //Would we need something like this?
@@ -88,6 +89,9 @@ export default class CheckersStore {
       },
       onPlayerJoined() {
         socket.emit('playerJoinedGame');
+      },
+      onGameDestroyed() {
+        socket.emit('gameDestroyed');
       }
     }
   }
