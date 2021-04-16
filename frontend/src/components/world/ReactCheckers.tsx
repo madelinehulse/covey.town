@@ -286,7 +286,7 @@ export default function ReactCheckers({
     });
 
     appState.socket?.on('gameDestroyed', () => {
-      console.log("this was called");
+      setGameState(defualtCheckersGameState());
       toast({
         title: `Opponent left game`,
         description: <>Find another player to start a game</>,
