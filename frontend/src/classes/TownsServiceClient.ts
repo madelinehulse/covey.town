@@ -109,12 +109,12 @@ export interface GameUpdateRequest {
   toCol: number;
 }
 
-/**
- * Response from the server for a game update request
- */
- export interface GameUpdateResponse {
-  gameState: CheckersGameState;
-}
+// /**
+//  * Response from the server for a game update request
+//  */
+//  export interface GameUpdateResponse {
+//   gameState: CheckersGameState;
+// }
 
 /**
  * Payload sent by the client to delete a Town
@@ -231,8 +231,8 @@ export default class TownsServiceClient {
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
-  async updateGame(requestData: GameUpdateRequest): Promise<GameUpdateResponse> {
-    const responseWrapper = await this._axios.patch<ResponseEnvelope<GameUpdateResponse>>(`/towns/games/${requestData.gameID}`, requestData);
+  async updateGame(requestData: GameUpdateRequest): Promise<void> {
+    const responseWrapper = await this._axios.patch<ResponseEnvelope<void>>(`/towns/games/${requestData.gameID}`, requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 

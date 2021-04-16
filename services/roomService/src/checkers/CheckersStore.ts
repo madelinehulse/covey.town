@@ -57,8 +57,7 @@ export default class CheckersStore {
   updateGame(gameID:string, fromRow:number,fromCol:number,toRow:number,toCol:number): boolean {
     const existingGame = this.getControllerForGame(gameID);
     if(existingGame) {
-      existingGame.movePiece(fromRow, fromCol, toRow, toCol);
-      return true;
+      return existingGame.movePiece(fromRow, fromCol, toRow, toCol);
     }
     return false;
   }
@@ -68,7 +67,7 @@ export default class CheckersStore {
   deleteGame(gameID: string): boolean {
     const existingGame = this.getControllerForGame(gameID);
 
-    if (existingGame && existingGame.isGameOver()) {
+    if (existingGame && existingGame.getIsGameOver()) {
       this._games = this._games.filter(game => game !== existingGame);
       return true;
       //Would we need something like this?
@@ -82,7 +81,6 @@ export default class CheckersStore {
       onMoveMade(gameState: CheckersGameState) {
         socket.emit('moveMade', gameState);
       },
-
       onPlayerJoined() {
         socket.emit('playerJoinedGame');
       }

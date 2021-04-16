@@ -201,10 +201,9 @@ export async function gameCreateHandler(requestData: GameCreateRequest): Promise
 
 export async function gameUpdateHandler(requestData: GameUpdateRequest): Promise<ResponseEnvelope<Record<string, null>>> {
   const gamesStore = CheckersStore.getInstance();
-
   const success = gamesStore.updateGame(requestData.gameID, requestData.fromRow, requestData.fromCol, requestData.toRow, requestData.toCol);
   return {
-    isOK: true,
+    isOK: success,
     response: {},
     message: !success ? 'Invalid move' : undefined,
   };

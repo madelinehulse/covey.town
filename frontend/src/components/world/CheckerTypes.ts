@@ -10,7 +10,7 @@ export type CheckersGameState = {
   board: Checker[][],
   player1: ServerPlayer | null,
   player2: ServerPlayer | null,
-  myPlayerTurn: boolean,
+  blacksTurn: boolean,
   redPieces: number,
   blackPieces: number,
   isGameOver: boolean

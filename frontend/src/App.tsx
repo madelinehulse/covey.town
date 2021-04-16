@@ -180,12 +180,9 @@ async function GameController(initData: TownJoinResponse,
   socket.on('disconnect', () => {
     dispatchAppUpdate({ action: 'disconnect' });
   });
-  // socket.on('moveMade', (newGameState: CheckersGameState) => {
-  //   console.log('recieved update from other player');
-  // });
-  // socket.on('playerJoinedGame', () => {
-  //   console.log('other player has joined game');
-  // });
+  socket.on('moveMade', (newGameState: CheckersGameState) => {
+    console.log('recieved update from other player');
+  });
   const emitMovement = (location: UserLocation) => {
     socket.emit('playerMovement', location);
     dispatchAppUpdate({ action: 'weMoved', location });
@@ -235,7 +232,6 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
     } if (!videoInstance) {
       return <div>Loading...</div>;
     }
-    console.log('App loading');
     return (
       <div>
         <WorldMap />

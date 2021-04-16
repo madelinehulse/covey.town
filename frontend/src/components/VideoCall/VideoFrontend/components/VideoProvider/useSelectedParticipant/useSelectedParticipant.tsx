@@ -2,7 +2,6 @@ import React, {
   createContext, useContext, useState, useEffect,
 } from 'react';
 import { Participant, Room } from 'twilio-video';
-import Popup from '../../../../../Popup/Popup';
 
 type selectedParticipantContextType = [Participant | null, (participant: Participant) => void];
 
@@ -10,7 +9,6 @@ export const selectedParticipantContext = createContext<selectedParticipantConte
 
 export default function useSelectedParticipant() {
   const [selectedParticipant, setSelectedParticipant] = useContext(selectedParticipantContext);
-  Popup();
   return [selectedParticipant, setSelectedParticipant] as const;
 }
 

@@ -1,9 +1,6 @@
 import { useToast } from '@chakra-ui/react';
-import { TurnedIn } from '@material-ui/icons';
 import Phaser from 'phaser';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Socket } from 'socket.io-client';
-import { YearlyInstance } from 'twilio/lib/rest/api/v2010/account/usage/record/yearly';
+import React, { useEffect, useState } from 'react';
 import Player, { UserLocation } from '../../classes/Player';
 import { CoveyAppState } from '../../CoveyTypes';
 import useCoveyAppState from '../../hooks/useCoveyAppState';
@@ -11,7 +8,7 @@ import useNearbyPlayers from '../../hooks/useNearbyPlayers';
 import { Checker, CheckersGameState } from './CheckerTypes';
 
 type HandleCreate = () => void;
-type HandleMove = (oldLoc: {col: number, row: number}, newLoc: {col: number, row: number}) => void;
+type HandleMove = (oldLoc: {col: number, row: number}, newLoc: {col: number, row: number}) => Promise<boolean>;
 type HandleDelete = () => void;
 
 interface CheckersGameProps {
@@ -24,7 +21,7 @@ function defualtCheckersGameState(): CheckersGameState {
     board: [],
     player1: null,
     player2: null,
-    myPlayerTurn: false,
+    blacksTurn: false,
     redPieces: 0,
     blackPieces: 0,
     isGameOver: false
@@ -40,11 +37,14 @@ class ReactCheckersScene extends Phaser.Scene {
 
   private gameState: CheckersGameState;
 
+  private currentPlayerID: string | undefined;
+
   constructor(
     handleCreateParam: HandleCreate,
     handleMoveParam: HandleMove,
     handleDeleteParam: HandleDelete,
-    gameState: CheckersGameState
+    gameState: CheckersGameState,
+    playerID: string | undefined
   ) {
     super({
       key: 'checkers',
@@ -53,6 +53,7 @@ class ReactCheckersScene extends Phaser.Scene {
     this.handleMoveFunction = handleMoveParam;
     this.handleDeleteFunction = handleDeleteParam;
     this.gameState = gameState;
+    this.currentPlayerID = playerID;
   }
 
   init() {
@@ -73,6 +74,7 @@ class ReactCheckersScene extends Phaser.Scene {
     this.load.image('blackCheckerKing', './assets/checkers/blackCheckerKing.png');
     this.load.image('tanCheckerTile', './assets/checkers/tan-checker.png');
     this.load.image('brownCheckerTile', './assets/checkers/brown-checker.png');
+    this.load.image('exitButton', './assets/checkers/exit-button.png');
   }
 
   create() {
@@ -93,39 +95,69 @@ class ReactCheckersScene extends Phaser.Scene {
     windowContainer.add([backgroundImage, playButton]);
     } else {
       this.startGame(windowContainer);
-    }
+      // Handle drag input for checkers
+      let origPos: {x: number, y: number} = {x: 0, y: 0};
+      
+      const isPlayer1: boolean = this.currentPlayerID === this.gameState.player1?._id;
+      const myTurn = (this.gameState.blacksTurn && isPlayer1) || (!this.gameState.blacksTurn && !isPlayer1);
 
-    // Handle drag input for checkers
-    let origPos: {x: number, y: number} = {x: 0, y: 0};
-
-    // Function to compute row and col of checker in gameBoard
-    const computeLoc = (x: number, y: number) => {
-      const column = Math.round((x - 90) / 60);
-      const row = Math.round((y - 90) / 60);
-      return { col: column, row };
-    };
-
-    this.input.on('dragstart', (pointer: Phaser.Input.Pointer, gameObject: any) => {
-      origPos = {x: gameObject.x, y: gameObject.y};
-    });
-
-    this.input.on('drag', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
-      const object = gameObject;
-      object.x = dragX;
-      object.y = dragY;
-    });
-
-    this.input.on('dragend', (pointer: Phaser.Input.Pointer, gameObject: any) => {
-      if (this.gameState.myPlayerTurn) {
-        const origCheckerLoc = computeLoc(origPos.x, origPos.y);
-        const newCheckerLoc = computeLoc(gameObject.x, gameObject.y);
-        this.handleMoveFunction(origCheckerLoc, newCheckerLoc);
+      // Add text elements to screen
+      let msg = '';
+      if (myTurn) {
+        if (isPlayer1) {
+          msg = 'Your turn to move: Black';
+        } else {
+          msg = 'Your turn to move: Red';
+        }
       } else {
-        const object = gameObject;
-        object.x = origPos.x;
-        object.y = origPos.y;
+        msg = 'Waiting for other player to move';
       }
-    });
+      const turnText = this.add.text(220, 640, msg).setFontSize(30);
+
+      // Game Score
+      const redScoreText = this.add.text(250, 85, `Red: ${this.gameState.redPieces}`).setFontSize(30);
+      const blackScoreText = this.add.text(600, 85, `Black: ${this.gameState.blackPieces}`).setFontSize(30);
+
+      // If game over
+      if (this.gameState.isGameOver) {
+        const gameOverText = this.add.text(this.game.renderer.width * 0.5, this.game.renderer.height * 0.5, `Game Over`).setFontSize(64);
+      }
+
+      // Function to compute row and col of checker in gameBoard
+      const computeLoc = (x: number, y: number) => {
+        const column = Math.round((x - 90) / 60);
+        const row = Math.round((y - 90) / 60);
+        return { col: column, row };
+      };
+
+      this.input.on('dragstart', (pointer: Phaser.Input.Pointer, gameObject: any) => {
+        origPos = {x: gameObject.x, y: gameObject.y};
+      });
+
+      this.input.on('drag', (pointer: Phaser.Input.Pointer, gameObject: any, dragX: number, dragY: number) => {
+        const object = gameObject;
+        object.x = dragX;
+        object.y = dragY;
+      });
+
+      this.input.on('dragend', (pointer: Phaser.Input.Pointer, gameObject: any) => {
+        if (myTurn) {
+          const origCheckerLoc = computeLoc(origPos.x, origPos.y);
+          const newCheckerLoc = computeLoc(gameObject.x, gameObject.y);
+          const success = this.handleMoveFunction(origCheckerLoc, newCheckerLoc);
+          console.log(success);
+          if (!success) {
+            const object = gameObject;
+            object.x = origPos.x;
+            object.y = origPos.y;
+          }
+        } else {
+          const object = gameObject;
+          object.x = origPos.x;
+          object.y = origPos.y;
+        }
+      });
+    }
   }
 
   addPlayButton(x: number, y: number, container: Phaser.GameObjects.Container) {
@@ -202,34 +234,6 @@ class ReactCheckersScene extends Phaser.Scene {
       }
     }
   }
-
-  addCheckerRow(row: number, color: string, type: number, container: Phaser.GameObjects.Container) {
-    if (type === 1) {
-      for (let i = 0; i <= 7; i += 1) {
-        if (i % 2 === 0) {
-          const checker = this.add
-            .image(i * 60 + 90, row * 60 + 90, color)
-            .setScale(0.75, 0.75)
-            .setInteractive();
-          this.input.setDraggable(checker);
-          container.add(checker);
-          console.log('added red checker');
-        }
-      }
-    } else {
-      for (let i = 0; i <= 7; i += 1) {
-        if (i % 2 === 1) {
-          const checker = this.add
-            .image(i * 60 + 90, row * 60 + 90, color)
-            .setScale(0.75, 0.75)
-            .setInteractive();
-          this.input.setDraggable(checker);
-          container.add(checker);
-          console.log('added black checker');
-        }
-      }
-    }
-  }
 }
 
 export default function ReactCheckers({
@@ -244,10 +248,13 @@ export default function ReactCheckers({
   const { apiClient } = useCoveyAppState();
   const toast = useToast();
 
-  appState.socket?.on('moveMade', (newGameState: CheckersGameState) => {
-    console.log('recieved update from other player');
-    setGameState(newGameState);
-  });
+  useEffect(() => {
+    appState.socket?.on('moveMade', (newGameState: CheckersGameState) => {
+      console.log('recieved update from other player move');
+      console.log(newGameState);
+      setGameState(newGameState);
+    });
+  }, [gameState]);
 
   useEffect(() => {
     if (waitingForOtherPlayer) {
@@ -257,37 +264,36 @@ export default function ReactCheckers({
           title: `Other player has joined the game!`,
           status: 'success',
           isClosable: true,
-          duration: null,
+          duration: 2000,
         });
       });
     }
   }, [waitingForOtherPlayer]);
 
-  async function handleMove(oldLoc: {col: number, row: number}, newLoc: {col: number, row: number}) {
+  async function handleMove(oldLoc: {col: number, row: number}, newLoc: {col: number, row: number}): Promise<boolean> {
     try {
-      const gameUpdate = await apiClient.updateGame({
+      await apiClient.updateGame({
         gameID: gameState.gameID,
         toRow: newLoc.row,
         toCol: newLoc.col,
-        fromRow: oldLoc.col,
-        fromCol: oldLoc.row,
+        fromRow: oldLoc.row,
+        fromCol: oldLoc.col,
       });
       toast({
         title: `You made a move!`,
         description: <>Your turn is over</>,
         status: 'success',
         isClosable: true,
-        duration: null,
+        duration: 2000,
       });
-      console.log('game updated with player move');
-      console.log(gameUpdate.gameState);
-      setGameState(gameUpdate.gameState);
-    } catch (err) {;
+      return true;
+    } catch (err) {
       toast({
         title: 'Invalid move',
         description: err.toString(),
         status: 'error',
       });
+      return false;
     }
   }
 
@@ -301,7 +307,7 @@ export default function ReactCheckers({
         description: <>Find another player to start a game</>,
         status: 'success',
         isClosable: true,
-        duration: null,
+        duration: 2000,
       });
     } catch (err) {
       toast({
@@ -366,7 +372,8 @@ export default function ReactCheckers({
       handleCreate,
       handleMove,
       handleDelete,
-      gameState
+      gameState,
+      appState.myPlayerID
     );
     game.scene.add('checkers', newGameScene, true);
 

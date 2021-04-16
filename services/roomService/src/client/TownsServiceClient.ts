@@ -5,15 +5,15 @@ import { UserLocation } from '../CoveyTypes';
 
 export type ServerPlayer = { _id: string, _userName: string, location: UserLocation };
 export type Checker = {
-  isBlack: Boolean;
-  isKing: Boolean
+  isBlack: boolean;
+  isKing: boolean
 } | null
 export type CheckersGameState = {
   gameID: string,
   board: Checker[][],
   player1: ServerPlayer | null,
   player2: ServerPlayer | null,
-  myPlayerTurn: boolean,
+  blacksTurn: boolean,
   redPieces: number,
   blackPieces: number,
   isGameOver: boolean

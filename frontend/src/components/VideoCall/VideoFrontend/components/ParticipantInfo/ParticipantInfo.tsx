@@ -17,10 +17,6 @@ import usePublications from '../../hooks/usePublications/usePublications';
 import useTrack from '../../hooks/useTrack/useTrack';
 import useParticipantIsReconnecting from '../../hooks/useParticipantIsReconnecting/useParticipantIsReconnecting';
 import { UserProfile } from '../../../../../CoveyTypes';
-import {
-  Button,
-} from "@chakra-ui/react";
-import Popup from '../../../../Popup/Popup';
 // import BioPopover from "../../../../Profile/BioPopover/BioPopover";
 
 const BORDER_SIZE = 3;

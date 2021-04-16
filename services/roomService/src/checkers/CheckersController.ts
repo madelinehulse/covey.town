@@ -39,6 +39,7 @@ export default class CheckersController {
 
 	private socket2: GameListener;
 
+	private isGameOver: boolean;
 
  constructor(player1: ServerPlayer, player2: ServerPlayer, listener1: GameListener, listener2: GameListener) {
      this._gameID = nanoid(8);
@@ -51,6 +52,7 @@ export default class CheckersController {
 	 this.otherPlayerJoined = false;
 	 this.socket1 = listener1;
 	 this.socket2 = listener2;
+	 this.isGameOver = false;
  }   
 
  retrieveGameState(): CheckersGameState {
@@ -59,11 +61,15 @@ export default class CheckersController {
 		board: this.board,
 		player1: this._player1,
 		player2: this._player2,
-		myPlayerTurn: this.player1Turn,
+		blacksTurn: this.player1Turn,
 		redPieces: this.redPieces,
 		blackPieces: this.blackPieces,
-		isGameOver: false
+		isGameOver: this.isGameOver,
 	};
+ }
+
+ getIsGameOver(): boolean {
+	 return this.isGameOver;
  }
 
  playerJoined(): void {
@@ -76,19 +82,15 @@ export default class CheckersController {
  // Builds a static hardcoded board (As start board is always the same)
  createBoard() {
 	 const empty = null;
-	 const redPiece: Checker = {isBlack: false, isKing: false,};
-	 const blackPiece: Checker = {isBlack: true, isKing: false,};
-
-	 const row0: Checker[] = [empty,redPiece,empty,redPiece,empty,redPiece,empty,redPiece];
-	 const row1: Checker[] = [redPiece,empty,redPiece,empty,redPiece,empty,redPiece,empty];
-	 const row2: Checker[] = [empty,redPiece,empty,redPiece,empty,redPiece,empty,redPiece];
+	 const row0: Checker[] = [empty,{isBlack: false, isKing: false,},empty,{isBlack: false, isKing: false,},empty,{isBlack: false, isKing: false,},empty,{isBlack: false, isKing: false,}];
+	 const row1: Checker[] = [{isBlack: false, isKing: false,},empty,{isBlack: false, isKing: false,},empty,{isBlack: false, isKing: false,},empty,{isBlack: false, isKing: false,},empty];
+	 const row2: Checker[] = [empty,{isBlack: false, isKing: false,},empty,{isBlack: false, isKing: false,},empty,{isBlack: false, isKing: false,},empty,{isBlack: false, isKing: false,}];
 	 const row3: Checker[] = [empty,empty,empty,empty,empty,empty,empty,empty]
 	 const row4: Checker[] = [empty,empty,empty,empty,empty,empty,empty,empty]
-	 const row5: Checker[] = [blackPiece,empty,blackPiece,empty,blackPiece,empty,blackPiece,empty];
-	 const row6: Checker[] = [empty,blackPiece,empty,blackPiece,empty,blackPiece,empty,blackPiece];
-	 const row7: Checker[] = [blackPiece,empty,blackPiece,empty,blackPiece,empty,blackPiece,empty];
+	 const row5: Checker[] = [{isBlack: true, isKing: false,},empty,{isBlack: true, isKing: false,},empty,{isBlack: true, isKing: false,},empty,{isBlack: true, isKing: false,},empty];
+	 const row6: Checker[] = [empty,{isBlack: true, isKing: false,},empty,{isBlack: true, isKing: false,},empty,{isBlack: true, isKing: false,},empty,{isBlack: true, isKing: false,}];
+	 const row7: Checker[] = [{isBlack: true, isKing: false,},empty,{isBlack: true, isKing: false,},empty,{isBlack: true, isKing: false,},empty,{isBlack: true, isKing: false,},empty];
 	 const newBoard: Checker[][] = [row0, row1, row2, row3, row4, row5, row6, row7];
-
      return newBoard;
  }
 ​
@@ -103,10 +105,7 @@ movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number):boolea
 		if(!this.isCurrentKing(fromRow,fromCol)) {
 			return this.normalMove(fromRow, fromCol, toRow, toCol);
 		}
-		const gameState = this.retrieveGameState();
-		this.socket1.onMoveMade(gameState);
-		this.socket2.onMoveMade(gameState);
-}
+	}
 	//No piece - Invalid, return false
 	return false;
 }
@@ -116,20 +115,20 @@ movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number):boolea
 // All 4 parameters are integers that represent
 //X,Y for the from move
 //X,Y coordinates for the to location
-normalMove(fromRow: number, fromCol: number, toRow: number, toCol: number): boolean{
+normalMove(fromRow: number, fromCol: number, toRow: number, toCol: number): boolean {
 	//Get current piece
 	const piece = this.board[fromRow][fromCol];
-	const rowDifference = fromRow - toRow;
-	const colDifference = fromCol - toCol;
+	const rowDifference = toRow - fromRow;
+	const colDifference = toCol - fromCol;
 ​
-    if (piece) {
+    if (piece !== null) {
 	//Checks for Single move
 	const blackCorrectMove = ((rowDifference === -1) && (piece.isBlack));
 	const redCorrectMove = ((rowDifference === 1) && (piece.isBlack === false));
 ​
 	//Checks to see if attempting a hop over another piece.
 	const blackHop = ((rowDifference === -2) && (piece.isBlack));
-	const redHop = ((rowDifference === -2) && (piece.isBlack === false));
+	const redHop = ((rowDifference === 2) && (piece.isBlack === false));
 	const hopMove = (Math.abs(colDifference) === 2);
 ​
 	if((blackCorrectMove || redCorrectMove) 
@@ -137,10 +136,17 @@ normalMove(fromRow: number, fromCol: number, toRow: number, toCol: number): bool
 		//If the target location doesn't have a piece...
 		//Move the piece.
 		//Move current piece to the location
+		if((toRow === 0 && piece.isBlack) || (toRow === 7 && !piece.isBlack)) {
+			piece.isKing = true;
+		}
 		this.board[toRow][toCol] = piece;
 		//Make the origin place empty
 		this.board[fromRow][fromCol] = null;
 		this.endTurn();
+		this.checkIsGameOver();
+		const gameState = this.retrieveGameState();
+		this.socket1.onMoveMade(gameState);
+		this.socket2.onMoveMade(gameState);
 		return true;
 	}
 ​   
@@ -150,6 +156,9 @@ normalMove(fromRow: number, fromCol: number, toRow: number, toCol: number): bool
 		const middleCol = ((fromCol+toCol)/2);
 ​
 		if(this.checkHop(fromRow,fromCol,middleRow,middleCol,toRow,toCol)) {
+			if((toRow === 0 && piece.isBlack) || (toRow === 7 && !piece.isBlack)) {
+				piece.isKing = true;
+			}
 			//Move current piece to the location
 			this.board[toRow][toCol] = piece;
 			//Make the origin place empty
@@ -157,8 +166,12 @@ normalMove(fromRow: number, fromCol: number, toRow: number, toCol: number): bool
 			//Eliminate the middle piece
 			this.board[middleRow][middleCol] = null;
             //Updates count of pieces
-            this.updateCount(fromRow,fromCol);
+            this.updateCount(toRow,toCol);
 			this.endTurn();
+			this.checkIsGameOver();
+			const gameState = this.retrieveGameState();
+			this.socket1.onMoveMade(gameState);
+			this.socket2.onMoveMade(gameState);
 			return true;
 		}
 ​
@@ -172,7 +185,7 @@ normalMove(fromRow: number, fromCol: number, toRow: number, toCol: number): bool
 // All 4 parameters are integers that represent
 //X,Y for the from move
 //X,Y coordinates for the to location
-kingMove(fromRow: number, fromCol: number, toRow: number, toCol: number):boolean {
+kingMove(fromRow: number, fromCol: number, toRow: number, toCol: number): boolean {
 	//Get current piece
 	const piece = this.board[fromRow][fromCol];
 	const rowDifference = fromRow - toRow;
@@ -195,6 +208,10 @@ kingMove(fromRow: number, fromCol: number, toRow: number, toCol: number):boolean
 		//Make the origin place empty
 		this.board[fromRow][fromCol] = null;
 		this.endTurn();
+		this.checkIsGameOver();
+		const gameState = this.retrieveGameState();
+		this.socket1.onMoveMade(gameState);
+		this.socket2.onMoveMade(gameState);
 		return true;
 		
 	}
@@ -212,8 +229,12 @@ kingMove(fromRow: number, fromCol: number, toRow: number, toCol: number):boolean
 			//Eliminate the middle piece
 			this.board[middleRow][middleCol] = null;
             //Updates count of pieces
-            this.updateCount(fromRow,fromCol);
+            this.updateCount(toRow,toCol);
 			this.endTurn();
+			this.checkIsGameOver();
+			const gameState = this.retrieveGameState();
+			this.socket1.onMoveMade(gameState);
+			this.socket2.onMoveMade(gameState);
 			return true;
 		}
 ​
@@ -224,69 +245,68 @@ kingMove(fromRow: number, fromCol: number, toRow: number, toCol: number):boolean
 }
 
 // Checks if a given Row and Column is within the board limits
-checkBounds(row: number, col: number) {
+checkBounds(row: number, col: number): boolean {
 	const rowFine = row >= 0 && row < 8;
 	const colFine = col>=0 && col<8;
     return (rowFine && colFine);
 }
 
-isGameOver() {
+checkIsGameOver() {
 	//Game End Scenario 1: One of them loses all their pieces
-	if(this.blackPieces ===0 || this.redPieces === 0) {
-		return true;
+	if(this.blackPieces === 0 || this.redPieces === 0) {
+		this.isGameOver = true;
 	}
 
 	// Game End Scenario 2: There are no valid moves
 	//IN every row
-	for(let rowNum =0; rowNum<8; rowNum++){
-		//In every column
-		for(let colNum = 0; colNum<8; colNum++) {
-			// Top right corner check
-			if(rowNum === 0 && colNum === 7){
-				return this.checkBottomLeftMove(rowNum,colNum) 
-			}
-			// Bottom Left corner check
-			if(rowNum === 7 && colNum === 0){
-				return this.checkTopRightMove(rowNum,colNum) 
-			}
-			// if in the left column, can only more right
-			if(colNum === 0){
-				return this.checkTopRightMove(rowNum,colNum) || this.checkBottomRightMove(rowNum,colNum);
-			}
-			// if in the right column, can only move left
-			if(colNum === 7){
-				return this.checkBottomLeftMove(rowNum,colNum) || this.checkTopLeftMove(rowNum,colNum);
-			}
-			// If in the top column, can only move down
-			if(rowNum === 0){
-				return this.checkBottomLeftMove(rowNum,colNum) || this.checkBottomRightMove(rowNum,colNum);
-			}
-			// if in the bottom column, can only move up
-			if(rowNum === 7){
-				return this.checkTopLeftMove(rowNum,colNum) || this.checkTopRightMove(rowNum,colNum);
-			}
-			//Otherwise can move in all directions
-			return this.checkBottomLeftMove(rowNum,colNum) 
-			|| this.checkBottomRightMove(rowNum, colNum)
-			|| this.checkTopLeftMove(rowNum,colNum)
-			|| this.checkTopRightMove(rowNum,colNum);
-		}
-	}
-	return false;
+	// for(let rowNum = 0; rowNum<8; rowNum++){
+	// 	//In every column
+	// 	for(let colNum = 0; colNum<8; colNum++) {
+	// 		// Top right corner check
+	// 		if(rowNum === 0 && colNum === 7){
+	// 			this.isGameOver = this.checkBottomLeftMove(rowNum,colNum) 
+	// 		}
+	// 		// Bottom Left corner check
+	// 		if(rowNum === 7 && colNum === 0){
+	// 			this.isGameOver = this.checkTopRightMove(rowNum,colNum) 
+	// 		}
+	// 		// if in the left column, can only more right
+	// 		if(colNum === 0){
+	// 			this.isGameOver = this.checkTopRightMove(rowNum,colNum) || this.checkBottomRightMove(rowNum,colNum);
+	// 		}
+	// 		// if in the right column, can only move left
+	// 		if(colNum === 7){
+	// 			this.isGameOver = this.checkBottomLeftMove(rowNum,colNum) || this.checkTopLeftMove(rowNum,colNum);
+	// 		}
+	// 		// If in the top column, can only move down
+	// 		if(rowNum === 0){
+	// 			this.isGameOver = this.checkBottomLeftMove(rowNum,colNum) || this.checkBottomRightMove(rowNum,colNum);
+	// 		}
+	// 		// if in the bottom column, can only move up
+	// 		if(rowNum === 7){
+	// 			this.isGameOver = this.checkTopLeftMove(rowNum,colNum) || this.checkTopRightMove(rowNum,colNum);
+	// 		}
+	// 		//Otherwise can move in all directions
+	// 		this.isGameOver = this.checkBottomLeftMove(rowNum,colNum) 
+	// 		|| this.checkBottomRightMove(rowNum, colNum)
+	// 		|| this.checkTopLeftMove(rowNum,colNum)
+	// 		|| this.checkTopRightMove(rowNum,colNum);
+	// 	}
+	// }
 }
 
 // Checks whether a piece can move OR hop in top left direction
-checkTopLeftMove(row:number, col: number){
+checkTopLeftMove(row:number, col: number): boolean {
 	//Only black piece or king piece can move up
-	if(this.isCurrentBlack(row,col) || this.isCurrentKing(row,col)){
-		return this.checkSingleMove(row, col, row-1, col-1)
-		&& this.checkHop(row, col, row-1, col-1, row-2, col-2);
+	if(this.isCurrentBlack(row,col) || this.isCurrentKing(row,col)) {
+		return (this.checkSingleMove(row, col, row-1, col-1)
+		&& this.checkHop(row, col, row-1, col-1, row-2, col-2)) ;
 	}
 	return false;
 }
 
 // Checks whether a piece can move OR hop in top right direction
-checkTopRightMove(row:number, col: number) {
+checkTopRightMove(row:number, col: number): boolean {
 	//Only black piece or king piece can move up
 	if(this.isCurrentBlack(row,col) || this.isCurrentKing(row,col)){
 		return this.checkSingleMove(row, col, row-1, col+1)
@@ -296,7 +316,7 @@ checkTopRightMove(row:number, col: number) {
 }
 
 // Checks whether a piece can move OR hop in bottom left direction
-checkBottomLeftMove(row:number, col: number) {
+checkBottomLeftMove(row:number, col: number): boolean {
 	//Only red piece or king piece can move down
 	if(this.isCurrentRed(row,col) || this.isCurrentKing(row,col)){
 		return this.checkSingleMove(row, col, row+1, col-1)
@@ -305,7 +325,7 @@ checkBottomLeftMove(row:number, col: number) {
 	return false;
 }
 // Checks whether a piece can move OR hop in bottom right direction
-checkBottomRightMove(row:number, col: number) {
+checkBottomRightMove(row:number, col: number): boolean {
 	//Only red piece or king piece can move down
 	if(this.isCurrentRed(row,col) || this.isCurrentKing(row,col)){
 		return this.checkSingleMove(row, col, row+1, col+1)
@@ -315,25 +335,25 @@ checkBottomRightMove(row:number, col: number) {
 }
 
 // Returns true if current piece is King
-isCurrentKing(row:number, col:number){
+isCurrentKing(row:number, col:number): boolean {
 	const piece = this.board[row][col];
 	if(piece){
-		return (piece.isKing);
+		return piece.isKing;
 	}
 	return false
 }
 
 // Returns true for black piece
-isCurrentBlack(row:number, col:number){
+isCurrentBlack(row:number, col:number): boolean {
 	const piece = this.board[row][col];
 	if(piece){
-		return (piece.isBlack);
+		return piece.isBlack;
 	}
 	return false
 }
 
 // Returns true for Red Piece
-isCurrentRed(row:number, col:number){
+isCurrentRed(row:number, col:number): boolean {
 	const piece = this.board[row][col];
 	if(piece){
 		return (!piece.isBlack);
@@ -342,32 +362,36 @@ isCurrentRed(row:number, col:number){
 }
 
 // Checks if a single move can be made
-checkSingleMove(fromRow:number,fromCol:number,toRow:number,toCol:number){
+checkSingleMove(fromRow:number,fromCol:number,toRow:number,toCol:number): boolean {
 	if(this.checkBounds(toRow,toCol)){
 		const piece = this.board[fromRow][fromCol];
-		const target = this.board[fromRow][fromCol];
-		return (!piece===null && target===null);
+		const target = this.board[toRow][toCol];
+		if (piece && target === null) {
+			return true;
+		}
 	}
 	return false;
 }
 
 //Check is a hop can be made
-checkHop(fromRow:number,fromCol:number,midRow:number, midCol: number, toRow:number,toCol:number){
+checkHop(fromRow:number,fromCol:number,midRow:number, midCol: number, toRow:number,toCol:number): boolean {
 	if(this.checkBounds(toRow,toCol)&& this.checkBounds(midRow, midCol)){
 		const piece = this.board[fromRow][fromCol];
-		const midPiece = this.board[fromRow][fromCol];
-		const target = this.board[fromRow][fromCol];
+		const midPiece = this.board[midRow][midCol];
+		const target = this.board[toRow][toCol];
 
-		const pieceFine = (piece && !piece===null);
-		const midPieceFine = (midPiece && !midPiece===null);
+		const pieceFine = (piece!==null);
+		const midPieceFine = (midPiece!==null);
 		const targetFine = (target===null);
-		return (pieceFine && midPieceFine && targetFine && (piece?.isBlack !== midPiece?.isBlack))
+		if (pieceFine && midPieceFine && targetFine && (piece?.isBlack !== midPiece?.isBlack)) {
+			return true;
+		}
 	}
 	return false;
 }
 
 //Returns true if it is the player's move and they move their own piece.
-correctPiece(fromRow:number,fromCol:number){
+correctPiece(fromRow:number,fromCol:number): boolean {
 	return ((this.isCurrentBlack(fromRow,fromCol) && this.player1Turn) 
 	|| (this.isCurrentRed(fromRow,fromCol) && !this.player1Turn));
 }
