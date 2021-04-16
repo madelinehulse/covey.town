@@ -1,11 +1,11 @@
 import assert from 'assert';
 import { Socket } from 'socket.io';
-import Player from '../types/Player';
-import { CoveyTownList, UserLocation } from '../CoveyTypes';
-import CoveyTownListener from '../types/CoveyTownListener';
-import CoveyTownsStore from '../lib/CoveyTownsStore';
-import CheckersStore from '../../src/checkers/CheckersStore';
+import CheckersStore from '../checkers/CheckersStore';
 import { CheckersGameState, ServerPlayer } from '../client/TownsServiceClient';
+import { CoveyTownList, UserLocation } from '../CoveyTypes';
+import CoveyTownsStore from '../lib/CoveyTownsStore';
+import CoveyTownListener from '../types/CoveyTownListener';
+import Player from '../types/Player';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -84,7 +84,7 @@ export interface TownUpdateRequest {
 /**
  * Payload sent by client to create a game in town
  */
- export interface GameCreateRequest {
+export interface GameCreateRequest {
   player1: ServerPlayer;
   player2: ServerPlayer;
   townID: string;
@@ -134,7 +134,9 @@ export interface ResponseEnvelope<T> {
  *
  * @param requestData an object representing the player's request
  */
-export async function townJoinHandler(requestData: TownJoinRequest): Promise<ResponseEnvelope<TownJoinResponse>> {
+export async function townJoinHandler(
+  requestData: TownJoinRequest,
+): Promise<ResponseEnvelope<TownJoinResponse>> {
   const townsStore = CoveyTownsStore.getInstance();
 
   const coveyTownController = townsStore.getControllerForTown(requestData.coveyTownID);
@@ -168,7 +170,9 @@ export async function townListHandler(): Promise<ResponseEnvelope<TownListRespon
   };
 }
 
-export async function townCreateHandler(requestData: TownCreateRequest): Promise<ResponseEnvelope<TownCreateResponse>> {
+export async function townCreateHandler(
+  requestData: TownCreateRequest,
+): Promise<ResponseEnvelope<TownCreateResponse>> {
   const townsStore = CoveyTownsStore.getInstance();
   if (requestData.friendlyName.length === 0) {
     return {
@@ -186,29 +190,43 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
   };
 }
 
-export async function gameCreateHandler(requestData: GameCreateRequest): Promise<ResponseEnvelope<GameCreateResponse>> {
+export async function gameCreateHandler(
+  requestData: GameCreateRequest,
+): Promise<ResponseEnvelope<GameCreateResponse>> {
   const gamesStore = CheckersStore.getInstance();
   try {
-  const newGame = gamesStore.createGame(requestData.player1, requestData.player2, requestData.townID);
-  return {
-    isOK: true,
-    response: {
-      gameID: newGame.gameID,
-      otherPlayerReady: newGame.otherPlayerJoined,
-      gameState: newGame.retrieveGameState(),
-    },
-  };
-} catch (error) {
-  return {
-    isOK: false,
-    message: "Player in game"
+    const newGame = gamesStore.createGame(
+      requestData.player1,
+      requestData.player2,
+      requestData.townID,
+    );
+    return {
+      isOK: true,
+      response: {
+        gameID: newGame.gameID,
+        otherPlayerReady: newGame.otherPlayerJoined,
+        gameState: newGame.retrieveGameState(),
+      },
+    };
+  } catch (error) {
+    return {
+      isOK: false,
+      message: 'Player in game',
+    };
   }
 }
-}
 
-export async function gameUpdateHandler(requestData: GameUpdateRequest): Promise<ResponseEnvelope<Record<string, null>>> {
+export async function gameUpdateHandler(
+  requestData: GameUpdateRequest,
+): Promise<ResponseEnvelope<Record<string, null>>> {
   const gamesStore = CheckersStore.getInstance();
-  const success = gamesStore.updateGame(requestData.gameID, requestData.fromRow, requestData.fromCol, requestData.toRow, requestData.toCol);
+  const success = gamesStore.updateGame(
+    requestData.gameID,
+    requestData.fromRow,
+    requestData.fromCol,
+    requestData.toRow,
+    requestData.toCol,
+  );
   return {
     isOK: success,
     response: {},
@@ -216,7 +234,9 @@ export async function gameUpdateHandler(requestData: GameUpdateRequest): Promise
   };
 }
 
-export async function gameDeleteHandler(requestData: GameDeleteRequest): Promise<ResponseEnvelope<Record<string, null>>> {
+export async function gameDeleteHandler(
+  requestData: GameDeleteRequest,
+): Promise<ResponseEnvelope<Record<string, null>>> {
   const gamesStore = CheckersStore.getInstance();
   const success = gamesStore.deleteGame(requestData.gameID);
   return {
@@ -226,25 +246,37 @@ export async function gameDeleteHandler(requestData: GameDeleteRequest): Promise
   };
 }
 
-export async function townDeleteHandler(requestData: TownDeleteRequest): Promise<ResponseEnvelope<Record<string, null>>> {
+export async function townDeleteHandler(
+  requestData: TownDeleteRequest,
+): Promise<ResponseEnvelope<Record<string, null>>> {
   const townsStore = CoveyTownsStore.getInstance();
   const success = townsStore.deleteTown(requestData.coveyTownID, requestData.coveyTownPassword);
   return {
     isOK: success,
     response: {},
-    message: !success ? 'Invalid password. Please double check your town update password.' : undefined,
+    message: !success
+      ? 'Invalid password. Please double check your town update password.'
+      : undefined,
   };
 }
 
-export async function townUpdateHandler(requestData: TownUpdateRequest): Promise<ResponseEnvelope<Record<string, null>>> {
+export async function townUpdateHandler(
+  requestData: TownUpdateRequest,
+): Promise<ResponseEnvelope<Record<string, null>>> {
   const townsStore = CoveyTownsStore.getInstance();
-  const success = townsStore.updateTown(requestData.coveyTownID, requestData.coveyTownPassword, requestData.friendlyName, requestData.isPubliclyListed);
+  const success = townsStore.updateTown(
+    requestData.coveyTownID,
+    requestData.coveyTownPassword,
+    requestData.friendlyName,
+    requestData.isPubliclyListed,
+  );
   return {
     isOK: success,
     response: {},
-    message: !success ? 'Invalid password or update values specified. Please double check your town update password.' : undefined,
+    message: !success
+      ? 'Invalid password or update values specified. Please double check your town update password.'
+      : undefined,
   };
-
 }
 
 /**
@@ -281,8 +313,7 @@ export function townSubscriptionHandler(socket: Socket): void {
   // For each player, the session token should be the same string returned by joinTownHandler
   const { token, coveyTownID } = socket.handshake.auth as { token: string; coveyTownID: string };
 
-  const townController = CoveyTownsStore.getInstance()
-    .getControllerForTown(coveyTownID);
+  const townController = CoveyTownsStore.getInstance().getControllerForTown(coveyTownID);
 
   // Retrieve our metadata about this player from the TownController
   const s = townController?.getSessionByToken(token);
