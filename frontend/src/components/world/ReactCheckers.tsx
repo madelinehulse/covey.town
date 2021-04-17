@@ -115,16 +115,17 @@ class ReactCheckersScene extends Phaser.Scene {
       const turnText = this.add.text(20, 570, msg).setFontSize(30);
 
       // Game Score
-      const redScoreText = this.add.text(60, 5, `Red: ${this.gameState.redPieces}`).setFontSize(30);
-      const blackScoreText = this.add.text(350, 5, `Black: ${this.gameState.blackPieces}`).setFontSize(30);
+      const redScoreText = this.add.text(40, 5, `Red: ${this.gameState.redPieces}`).setFontSize(30);
+      const blackScoreText = this.add.text(200, 5, `Black: ${this.gameState.blackPieces}`).setFontSize(30);
+      const leaveGameText = this.add.text(390, 5, `Esc to quit`).setFontSize(30);
 
       let gameOverText: Phaser.GameObjects.Text;
       // If game over
       if (this.gameState.isGameOver) {
-        gameOverText = this.add.text(this.game.renderer.width * 0.5, this.game.renderer.height * 0.5, `Game Over`).setFontSize(64);
+        gameOverText = this.add.text(300, 300, `Game Over`).setFontSize(64);
         windowContainer.add(gameOverText);
       }
-      windowContainer.add([turnText, redScoreText, blackScoreText]);
+      windowContainer.add([turnText, redScoreText, blackScoreText, leaveGameText]);
 
       // Function to compute row and col of checker in gameBoard
       const computeLoc = (x: number, y: number) => {
@@ -169,28 +170,6 @@ class ReactCheckersScene extends Phaser.Scene {
           }
           windowContainer.removeAll(true);
         }, this);
-
-    // // Add Exit button
-    // const exitButton = this.add.image(560, 0, 'exitButton', 1).setOrigin(0).setInteractive();
-    // // Add tint on button hover
-    // exitButton.on('pointerover', () => {
-    //   exitButton.setTint(0xff0000);
-    // });
-    // // Clear tint on hover exit
-    // exitButton.on('pointerout', () => {
-    //   exitButton.clearTint();
-    // });
-    // exitButton.on(
-    //   'pointerup',
-    //   () => {
-    //     if (this.gameState.gameID !== '') {
-    //       this.handleDeleteFunction();
-    //     }
-    //     windowContainer.removeAll(true);
-    //   },
-    //   this,
-    // );
-    // windowContainer.add(exitButton);
   }
 
   addPlayButton(x: number, y: number, container: Phaser.GameObjects.Container) {
