@@ -229,7 +229,6 @@ export default class CheckersController {
           this.board[middleRow][middleCol] = null;
           // Updates count of pieces
           this.updateCount(toRow, toCol);
-          this.endTurn();
           this.checkIsGameOver();
           const gameState = this.retrieveGameState();
           this.sockets.forEach(s => {
@@ -286,7 +285,6 @@ export default class CheckersController {
           this.board[middleRow][middleCol] = null;
           // Updates count of pieces
           this.updateCount(toRow, toCol);
-          this.endTurn();
           this.checkIsGameOver();
           const gameState = this.retrieveGameState();
           this.sockets.forEach(s => {
